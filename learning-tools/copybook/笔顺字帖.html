@@ -71,13 +71,14 @@
             target.appendChild(svg);
 
             const group = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-            const transformData = HanziWriter.getScalingTransform(w, h);
+            const transformData = HanziWriter.getScalingTransform(w-10, h-10);
             group.setAttributeNS(null, 'transform', transformData.transform);
             svg.appendChild(group);
-
+            svg.style.padding = '5px';
             strokes.forEach(function(strokePath,index) {
                 const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
                 path.setAttributeNS(null, 'd', strokePath);
+                
                 if(index < strokeIndex){                    
                     path.style.fill = '#000';
                     path.classList.add('draw');
