@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>汉字描红练习</title>
+    <script src="https://cdn.jsdelivr.net/npm/hanzi-writer@2.2.0/dist/hanzi-writer.min.js"></script>
+    <style>
+        .controls {
+            margin-bottom: 10px;
+        }
+        .hanzi-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            /* margin: -1px; */
+        }
+        .hanzi-box {
+            position: relative;
+            /* width: 100px;
+            height: 100px; */
+            border: 0px solid #f10000;
+        }
+        .hanzi-box canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+        .draw {
+            stroke: #000;
+            /* stroke-width: 1;
+            fill: none; */
+            stroke-dasharray: 1000;
+            stroke-dashoffset: 1000;
+            animation: draw 5s linear infinite;
+            }
+
+        @keyframes draw {
+            to {
+                stroke-dashoffset: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="controls">
+        <label for="characters">汉字：</label>
+        <input type="text" id="characters" value="汉字描红">
+        <label for="charsPerRow">每行汉字数：</label>
+        <input type="number" id="charsPerRow" value="3" min="1">
+        <button id="generateGrid">生成字帖</button>
+    </div>
+    <div class="hanzi-container" id="hanziContainer"></div>
+
+    <script>
+        const hanziContainer = document.getElementById('hanziContainer');
+        const charactersInput = document.getElementById('characters');
+        const charsPerRowInput = document.getElementById('charsPerRow');
+        const generateGridButton = document.getElementById('generateGrid');
+
+        // 缓存汉字笔顺数据
+        const hanziCache = {};
+
+        // 渲染笔顺
+        function renderFanningStrokes(target, strokes,strokeIndex,w,h) {
+            const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+            // svg.style.width = `{w}px`;
+            // svg.style.height = `{h}px`;
+            // svg.style.border = '0px solid #EEE';
+            // svg.style.marginRight = '3px';
+            target.appendChild(svg);
+
+            const group = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+            const transformData = HanziWriter.getScalingTransform(w, h);
+            group.setAttributeNS(null, 'transform', transformData.transform);
+            svg.appendChild(group);
+
+            strokes.forEach(function(strokePath,index) {
+                const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                path.setAttributeNS(null, 'd', strokePath);
+                if(index < strokeIndex){                    
+                    path.style.fill = '#000';
+                    path.classList.add('draw');
+                }else{
+                    path.style.fill = '#999';
+                }
+                group.appendChild(path);
+            });
+        }
+        // 绘制米字格
+        function drawMiZiGe(ctx, width, height) {
+            ctx.clearRect(0, 0, width, height);
+
+            // 绘制外围实线
+            ctx.strokeStyle = '#f00';
+            ctx.lineWidth = 1;
+            ctx.strokeRect(0, 0, width, height);
+
+            // 绘制内部虚线
+            ctx.strokeStyle = '#f99';
+            ctx.lineWidth = 1;
+            ctx.setLineDash([5, 5]);
+            ctx.beginPath();
+            ctx.moveTo(width / 2, 0);
+            ctx.lineTo(width / 2, height);
+            ctx.moveTo(0, height / 2);
+            ctx.lineTo(width, height / 2);
+            ctx.moveTo(0, 0);
+            ctx.lineTo(width, height);
+            ctx.moveTo(width, 0);
+            ctx.lineTo(0, height);
+            ctx.stroke();
+            ctx.setLineDash([]);
+        }
+
+        // 初始化手写功能
+        function enableHandwriting(canvas) {
+            const ctx = canvas.getContext('2d');
+            let isDrawing = false;
+
+            canvas.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                const touch = e.touches[0];
+                const rect = canvas.getBoundingClientRect();
+                ctx.beginPath();
+                ctx.moveTo(touch.clientX - rect.left, touch.clientY - rect.top);
+                isDrawing = true;
+            });
+
+            canvas.addEventListener('touchmove', (e) => {
+                if (!isDrawing) return;
+                e.preventDefault();
+                const touch = e.touches[0];
+                const rect = canvas.getBoundingClientRect();
+                ctx.lineTo(touch.clientX - rect.left, touch.clientY - rect.top);
+                ctx.strokeStyle = '#000';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+            });
+
+            canvas.addEventListener('touchend', () => {
+                isDrawing = false;
+            });
+        }
+
+        // 使用 Hanzi Writer 绘制笔顺
+        function drawHanzi(container, character,w,h, strokeNum = null) {
+            const writer = HanziWriter.create(container, character, {
+                width: w,
+                height: h,
+                padding: 5,
+                showOutline: true, // 显示汉字轮廓
+                radicalColor: '#800', // 部首颜色
+                strokeAnimationSpeed: 1,
+                delayBetweenStrokes: 200,
+            });
+
+            if (strokeNum !== null) {
+                // 检查 strokeNum 是否有效
+                // writer.quiz({quizStartStrokeNum:strokeNum});
+                // writer.highlightStroke(strokeNum); // 渲染指定笔画
+                // writer.animateStroke(strokeNum); // 渲染指定笔画
+                    
+            } else {
+                writer.loopCharacterAnimation(); // 渲染完整汉字动画
+            }
+        }
+        // 生成字帖
+        generateGridButton.addEventListener('click', async () => {
+            hanziContainer.innerHTML = ''; // 清空容器
+            const characters = charactersInput.value.split('');
+            const charsPerRow = parseInt(charsPerRowInput.value, 10) || 3;
+
+            var fragment = document.createDocumentFragment();
+
+            for (const character of characters) {
+                // 加载汉字笔顺数据（使用缓存）
+                if (!hanziCache[character]) {
+                    hanziCache[character] = await HanziWriter.loadCharacterData(character);
+                }
+                const data = hanziCache[character];
+                const totalStrokes = data.strokes.length;
+
+                // 按笔顺生成格子
+                for (let strokeIndex = 0; strokeIndex <= totalStrokes; strokeIndex++) {
+                    const box = document.createElement('div');
+                    box.className = 'hanzi-box';
+                    fragment.appendChild(box);
+
+                    // 渲染笔顺
+                    // 创建画布并绘制米字格
+                    const canvas = document.createElement('canvas');
+                    size=50
+                    w=size;
+                    h=size;
+                    box.style.width=w+'px';
+                    box.style.height=h+'px';
+                    canvas.width = w;
+                    canvas.height = h;
+                    box.appendChild(canvas);
+                    const ctx = canvas.getContext('2d');
+                    drawMiZiGe(ctx, w, h);
+
+                    // 创建透明画布用于手写
+                    const handwritingCanvas = document.createElement('canvas');
+                    handwritingCanvas.width = w;
+                    handwritingCanvas.height = h;
+                    handwritingCanvas.style.position = 'absolute';
+                    handwritingCanvas.style.top = '0';
+                    handwritingCanvas.style.left = '0';
+                    handwritingCanvas.style.zIndex = '10';
+                    box.appendChild(handwritingCanvas);
+
+                    // 启用手写功能
+                    enableHandwriting(handwritingCanvas);
+
+                    // 绘制汉字或笔顺
+                    if (strokeIndex === 0) {
+                        drawHanzi(box, character,w,h); // 绘制完整汉字
+                    } else {
+                        const strokesPortion = data.strokes//.slice(0, strokeIndex );
+                        renderFanningStrokes(box, strokesPortion,strokeIndex,w,h); // 绘制笔顺
+                        // drawHanzi(box, character, strokeIndex ); // 绘制指定笔画
+                    }
+                    
+
+                    // 换行逻辑
+                    if ((fragment.children.length % charsPerRow) === 0) {
+                        hanziContainer.appendChild(fragment);
+                        // fragment=document.createDocumentFragment();
+                    }
+                }
+            }
+
+            // 添加剩余的格子
+            hanziContainer.appendChild(fragment);
+        });
+    </script>
+</body>
+</html>

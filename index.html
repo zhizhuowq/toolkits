@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>工具主页</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+        header {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            text-align: center;
+        }
+        nav {
+            margin: 20px;
+        }
+        nav ul {
+            list-style-type: none;
+            padding: 0;
+        }
+        nav ul li {
+            margin: 10px 0;
+        }
+        nav ul li a {
+            text-decoration: none;
+            color: #4CAF50;
+            font-size: 18px;
+        }
+        nav ul li a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>工具主页</h1>
+        <p>快速访问和配置您的工具</p>
+    </header>
+    <nav>
+        <h2>工具列表</h2>
+        <ul id="tool-list">
+            <!-- 工具链接将动态加载或手动添加 -->
+            <li><a href="./learning-tools/copybook/笔顺字帖.html">笔顺字帖</a></li>
+            <li><a href="./tool2.html">工具2</a></li>
+            <li><a href="./tool3.html">工具3</a></li>
+        </ul>
+    </nav>
+    <script>
+        // 如果需要动态加载工具，可以在这里添加逻辑
+        // 例如通过 AJAX 或文件扫描加载工具列表
+    </script>
+</body>
+</html>
