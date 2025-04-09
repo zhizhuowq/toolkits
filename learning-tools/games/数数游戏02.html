@@ -1,0 +1,2000 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>欢乐数数游戏</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css" rel="stylesheet">
+    <style>
+        @font-face {
+            font-family: 'KidFont';
+            src: url('https://cdn.jsdelivr.net/npm/cute-font@1.0.0/CuteFont-Regular.ttf') format('truetype');
+        }
+        
+        * {
+            -webkit-user-select: none;
+            user-select: none;
+            cursor: default;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        body {
+            font-family: 'KidFont', sans-serif;
+            background-color: #f0f9ff;
+            overflow: hidden;
+            touch-action: manipulation;
+        }
+        
+        .game-container {
+            position: relative;
+            height: 100vh;
+            max-width: 100vw;
+            overflow: hidden;
+        }
+        
+        .game-button {
+            background-color: #4ade80;
+            border-radius: 50%;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1), 0 5px 15px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease;
+            border: 3px solid white;
+        }
+        
+        .game-button:active {
+            transform: scale(0.9);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        
+        .number-btn {
+            width: 60px;
+            height: 60px;
+            line-height: 60px;
+            font-size: 32px;
+            text-align: center;
+            border-radius: 50%;
+            display: inline-block;
+            margin: 8px;
+            color: white;
+            font-weight: bold;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: 3px solid white;
+        }
+        
+        .number-btn:active {
+            transform: scale(0.9);
+        }
+        
+        .disabled {
+            opacity: 0.5;
+            pointer-events: none;
+        }
+        
+        .game-item {
+            display: inline-block;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .game-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+        
+        .bubble {
+            position: absolute;
+            background-color: rgba(255, 255, 255, 0.9);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 100;
+            animation: bubble 2s ease-out;
+            opacity: 0;
+        }
+        
+        @keyframes bubble {
+            0% {
+                transform: scale(0);
+                opacity: 0.7;
+            }
+            100% {
+                transform: scale(2);
+                opacity: 0;
+            }
+        }
+        
+        .float {
+            animation: float 2s ease-in-out infinite;
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+        
+        .pulse {
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+        
+        .shake {
+            animation: shake 0.5s linear;
+        }
+        
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-5px); }
+            40%, 80% { transform: translateX(5px); }
+        }
+        
+        .jump {
+            animation: jump 0.5s ease;
+        }
+        
+        @keyframes jump {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+        }
+        
+        .rotate {
+            animation: rotate 1s linear;
+        }
+        
+        @keyframes rotate {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .star {
+            position: absolute;
+            opacity: 0;
+            font-size: 24px;
+            color: #FFD700;
+            transform-origin: center;
+            pointer-events: none;
+        }
+        
+        .star-ani {
+            animation: starAnimate 1.5s ease-out forwards;
+        }
+        
+        @keyframes starAnimate {
+            0% {
+                transform: scale(0) rotate(0deg);
+                opacity: 1;
+            }
+            50% {
+                opacity: 1;
+            }
+            100% {
+                transform: scale(1.5) rotate(360deg);
+                opacity: 0;
+            }
+        }
+        
+        .hint-arrow {
+            position: absolute;
+            width: 50px;
+            height: 50px;
+            background-color: rgba(255, 215, 0, 0.7);
+            border-radius: 50%;
+            animation: arrow-pulse 1s infinite;
+            z-index: 50;
+            pointer-events: none;
+        }
+        
+        @keyframes arrow-pulse {
+            0%, 100% { transform: scale(1); opacity: 0.7; }
+            50% { transform: scale(1.2); opacity: 1; }
+        }
+        
+        .hint-arrow::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 20px;
+            height: 20px;
+            border-top: 5px solid white;
+            border-right: 5px solid white;
+            transform: translate(-50%, -50%) rotate(45deg);
+        }
+        
+        .confetti {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            opacity: 0;
+            pointer-events: none;
+        }
+        
+        .guide-character {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            width: 120px;
+            height: 120px;
+            z-index: 100;
+        }
+        
+        .speech-bubble {
+            position: absolute;
+            bottom: 140px;
+            left: 80px;
+            background-color: white;
+            border-radius: 20px;
+            padding: 15px;
+            max-width: 200px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            z-index: 100;
+        }
+        
+        .speech-bubble::after {
+            content: '';
+            position: absolute;
+            bottom: -15px;
+            left: 30px;
+            width: 0;
+            height: 0;
+            border-left: 15px solid transparent;
+            border-right: 15px solid transparent;
+            border-top: 15px solid white;
+        }
+        
+        .draggable {
+            cursor: grab;
+            touch-action: none;
+        }
+        
+        .draggable:active {
+            cursor: grabbing;
+        }
+        
+        .drop-zone {
+            border: 3px dashed #dddddd;
+            border-radius: 10px;
+            background-color: rgba(255, 255, 255, 0.5);
+            transition: all 0.3s ease;
+        }
+        
+        .drop-zone.highlight {
+            background-color: rgba(74, 222, 128, 0.2);
+            border-color: #4ade80;
+        }
+        
+        /* Parent Controls Panel */
+        .parent-controls {
+            position: absolute;
+            top: 0;
+            right: 0;
+            padding: 10px;
+            z-index: 999;
+            opacity: 0.3;
+            transition: opacity 0.3s ease;
+        }
+        
+        .parent-controls:hover {
+            opacity: 1;
+        }
+        
+        .settings-panel {
+            position: absolute;
+            top: 0;
+            right: -300px;
+            width: 300px;
+            height: 100vh;
+            background-color: white;
+            box-shadow: -5px 0 15px rgba(0, 0, 0, 0.1);
+            transition: right 0.3s ease;
+            z-index: 1000;
+            padding: 20px;
+            overflow-y: auto;
+        }
+        
+        .settings-panel.active {
+            right: 0;
+        }
+        
+        .number-carousel {
+            display: flex;
+            overflow-x: auto;
+            scroll-snap-type: x mandatory;
+            -webkit-overflow-scrolling: touch;
+            scroll-behavior: smooth;
+            white-space: nowrap;
+            width: 100%;
+            padding: 10px 0;
+        }
+        
+        .number-carousel::-webkit-scrollbar {
+            display: none;
+        }
+        
+        .number-carousel-item {
+            scroll-snap-align: center;
+            flex: 0 0 auto;
+            width: 80px;
+            height: 80px;
+            margin: 0 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+            font-weight: bold;
+            border-radius: 10px;
+            background-color: #EEF2FF;
+            color: #4F46E5;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        /* Apple style */
+        .game-item.apple {
+            width: 60px;
+            height: 60px;
+            position: relative;
+        }
+        
+        .apple-body {
+            width: 50px;
+            height: 50px;
+            background-color: #e53e3e;
+            border-radius: 50%;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .apple-stem {
+            width: 5px;
+            height: 15px;
+            background-color: #68462B;
+            position: absolute;
+            top: -10px;
+            left: 50%;
+            transform: translateX(-50%) rotate(-10deg);
+        }
+        
+        .apple-leaf {
+            width: 20px;
+            height: 12px;
+            background-color: #38A169;
+            border-radius: 50% 50% 0 50%;
+            position: absolute;
+            top: -12px;
+            left: 60%;
+            transform: rotate(-20deg);
+        }
+        
+        /* Star style */
+        .game-item.star {
+            position: relative;
+            width: 60px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .star-shape {
+            font-size: 50px;
+            color: #ecc94b;
+            text-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+        
+        /* Balloon style */
+        .game-item.balloon {
+            width: 50px;
+            height: 70px;
+            position: relative;
+        }
+        
+        .balloon-body {
+            width: 50px;
+            height: 60px;
+            background-color: #3182CE;
+            border-radius: 50%;
+            position: relative;
+        }
+        
+        .balloon-tie {
+            width: 6px;
+            height: 15px;
+            background-color: #3182CE;
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+        
+        .balloon-string {
+            width: 2px;
+            height: 40px;
+            background-color: #A0AEC0;
+            position: absolute;
+            bottom: -50px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container bg-blue-50 relative overflow-hidden">
+        <!-- Welcome Screen -->
+        <div id="welcome-screen" class="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-b from-blue-200 to-indigo-100 z-50">
+            <h1 class="text-5xl font-bold text-indigo-600 mb-8 animate__animated animate__bounce animate__infinite">欢乐数数游戏</h1>
+            <div class="flex flex-wrap justify-center max-w-lg">
+                <div class="game-button w-40 h-40 m-4 bg-red-400 flex items-center justify-center animate__animated animate__pulse animate__infinite" data-game="counting">
+                    <div class="text-center text-white">
+                        <div class="text-5xl">🔢</div>
+                        <div class="mt-2 text-lg font-bold">数一数</div>
+                    </div>
+                </div>
+                <div class="game-button w-40 h-40 m-4 bg-yellow-400 flex items-center justify-center" data-game="beforeafter">
+                    <div class="text-center text-white">
+                        <div class="text-5xl">⬅️➡️</div>
+                        <div class="mt-2 text-lg font-bold">前后数字</div>
+                    </div>
+                </div>
+                <div class="game-button w-40 h-40 m-4 bg-green-400 flex items-center justify-center" data-game="sequence">
+                    <div class="text-center text-white">
+                        <div class="text-5xl">📊</div>
+                        <div class="mt-2 text-lg font-bold">顺序数数</div>
+                    </div>
+                </div>
+                <div class="game-button w-40 h-40 m-4 bg-blue-400 flex items-center justify-center" data-game="matching">
+                    <div class="text-center text-white">
+                        <div class="text-5xl">🔄</div>
+                        <div class="mt-2 text-lg font-bold">数量配对</div>
+                    </div>
+                </div>
+                <div class="game-button w-40 h-40 m-4 bg-purple-400 flex items-center justify-center" data-game="addsubtract">
+                    <div class="text-center text-white">
+                        <div class="text-5xl">➕➖</div>
+                        <div class="mt-2 text-lg font-bold">加一减一</div>
+                    </div>
+                </div>
+            </div>
+            <div class="stars-earned mt-8 flex justify-center">
+                <div class="text-yellow-500 text-4xl mx-2">⭐</div>
+                <div class="text-yellow-500 text-4xl mx-2 opacity-30">⭐</div>
+                <div class="text-yellow-500 text-4xl mx-2 opacity-30">⭐</div>
+                <div class="text-yellow-500 text-4xl mx-2 opacity-30">⭐</div>
+                <div class="text-yellow-500 text-4xl mx-2 opacity-30">⭐</div>
+            </div>
+        </div>
+
+        <!-- Game Screens -->
+        <!-- 1. Counting Game -->
+        <div id="counting-game" class="absolute inset-0 flex flex-col items-center justify-center bg-red-50 hidden">
+            <div class="absolute top-4 left-4">
+                <button id="counting-back" class="bg-white rounded-full p-3 shadow-lg">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                    </svg>
+                </button>
+            </div>
+            <div class="mb-10 text-3xl font-bold text-red-600">数一数有几个？</div>
+            <div id="counting-items-container" class="flex flex-wrap justify-center items-center w-4/5 h-1/2 mb-6"></div>
+            <div id="counting-options" class="flex justify-center flex-wrap max-w-md"></div>
+        </div>
+
+        <!-- 2. Before/After Game -->
+        <div id="beforeafter-game" class="absolute inset-0 flex flex-col items-center justify-center bg-yellow-50 hidden">
+            <div class="absolute top-4 left-4">
+                <button id="beforeafter-back" class="bg-white rounded-full p-3 shadow-lg">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-yellow-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                    </svg>
+                </button>
+            </div>
+            <div class="mb-10 text-3xl font-bold text-yellow-600">
+                <span id="beforeafter-label">哪个数字在前面？</span>
+            </div>
+            <div class="relative flex justify-center items-center mb-10">
+                <div id="beforeafter-current" class="text-6xl font-bold text-yellow-600 mx-12 border-4 border-yellow-400 rounded-xl p-4"></div>
+            </div>
+            <div id="beforeafter-options" class="flex justify-center"></div>
+        </div>
+
+        <!-- 3. Sequence Game -->
+        <div id="sequence-game" class="absolute inset-0 flex flex-col items-center justify-center bg-green-50 hidden">
+            <div class="absolute top-4 left-4">
+                <button id="sequence-back" class="bg-white rounded-full p-3 shadow-lg">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                    </svg>
+                </button>
+            </div>
+            <div class="mb-10 text-3xl font-bold text-green-600">按顺序点一点</div>
+            <div id="sequence-container" class="flex flex-wrap justify-center max-w-md"></div>
+        </div>
+
+        <!-- 4. Matching Game -->
+        <div id="matching-game" class="absolute inset-0 flex flex-col items-center justify-center bg-blue-50 hidden">
+            <div class="absolute top-4 left-4">
+                <button id="matching-back" class="bg-white rounded-full p-3 shadow-lg">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                    </svg>
+                </button>
+            </div>
+            <div class="mb-8 text-3xl font-bold text-blue-600">把物品拖到对的数字上</div>
+            <div id="matching-items" class="flex flex-wrap justify-center mb-8 w-4/5"></div>
+            <div id="matching-numbers" class="flex flex-wrap justify-center w-4/5"></div>
+        </div>
+
+        <!-- 5. Add/Subtract Game -->
+        <div id="addsubtract-game" class="absolute inset-0 flex flex-col items-center justify-center bg-purple-50 hidden">
+            <div class="absolute top-4 left-4">
+                <button id="addsubtract-back" class="bg-white rounded-full p-3 shadow-lg">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-purple-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                    </svg>
+                </button>
+            </div>
+            <div class="mb-6 text-3xl font-bold text-purple-600" id="addsubtract-question"></div>
+            <div class="flex justify-center items-center w-full mb-6">
+                <div id="addsubtract-container1" class="flex flex-wrap justify-center items-center mr-4 w-1/3 h-40 relative"></div>
+                <div id="addsubtract-operator" class="text-5xl font-bold text-purple-600 mx-2">+</div>
+                <div id="addsubtract-container2" class="flex flex-wrap justify-center items-center ml-4 w-1/3 h-40 relative"></div>
+            </div>
+            <div class="text-3xl font-bold text-purple-600 mb-6">=</div>
+            <div id="addsubtract-options" class="flex justify-center"></div>
+        </div>
+
+        <!-- Guide Character -->
+        <div id="guide-character" class="guide-character">
+            <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/svg/1f412.svg" class="w-full h-full float">
+        </div>
+        <div id="speech-bubble" class="speech-bubble"></div>
+
+        <!-- Parent Controls -->
+        <div class="parent-controls">
+            <button id="settings-toggle" class="bg-gray-200 rounded-full p-2 shadow-sm">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+            </button>
+        </div>
+
+        <!-- Settings Panel -->
+        <div id="settings-panel" class="settings-panel">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-xl font-bold text-gray-700">家长控制</h2>
+                <button id="settings-close" class="text-gray-400 hover:text-gray-600">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+
+            <div class="mb-6">
+                <h3 class="text-lg font-semibold text-gray-600 mb-2">音量控制</h3>
+                <div class="flex items-center">
+                    <span class="mr-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
+                        </svg>
+                    </span>
+                    <input type="range" id="volume-control" min="0" max="1" step="0.1" value="0.7" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer">
+                </div>
+            </div>
+
+            <div class="mb-6">
+                <h3 class="text-lg font-semibold text-gray-600 mb-2">难度设置</h3>
+                <div class="flex items-center mb-2">
+                    <input type="radio" id="difficulty-easy" name="difficulty" value="easy" checked class="mr-2">
+                    <label for="difficulty-easy" class="text-gray-700">简单 (1-5)</label>
+                </div>
+                <div class="flex items-center mb-2">
+                    <input type="radio" id="difficulty-medium" name="difficulty" value="medium" class="mr-2">
+                    <label for="difficulty-medium" class="text-gray-700">中等 (1-10)</label>
+                </div>
+                <div class="flex items-center">
+                    <input type="radio" id="difficulty-hard" name="difficulty" value="hard" class="mr-2">
+                    <label for="difficulty-hard" class="text-gray-700">困难 (1-20)</label>
+                </div>
+            </div>
+
+            <div class="mb-6">
+                <h3 class="text-lg font-semibold text-gray-600 mb-2">游戏物品</h3>
+                <div class="flex items-center mb-2">
+                    <input type="radio" id="item-mixed" name="item-type" value="mixed" checked class="mr-2">
+                    <label for="item-mixed" class="text-gray-700">混合物品</label>
+                </div>
+                <div class="flex items-center mb-2">
+                    <input type="radio" id="item-fruits" name="item-type" value="fruits" class="mr-2">
+                    <label for="item-fruits" class="text-gray-700">水果</label>
+                </div>
+                <div class="flex items-center">
+                    <input type="radio" id="item-stars" name="item-type" value="stars" class="mr-2">
+                    <label for="item-stars" class="text-gray-700">星星</label>
+                </div>
+            </div>
+
+            <div class="mb-6">
+                <h3 class="text-lg font-semibold text-gray-600 mb-2">声音效果</h3>
+                <div class="flex items-center mb-2">
+                    <input type="checkbox" id="sound-effects" checked class="mr-2">
+                    <label for="sound-effects" class="text-gray-700">音效</label>
+                </div>
+                <div class="flex items-center mb-2">
+                    <input type="checkbox" id="voice-guide" checked class="mr-2">
+                    <label for="voice-guide" class="text-gray-700">语音引导</label>
+                </div>
+                <div class="flex items-center">
+                    <input type="checkbox" id="background-music" checked class="mr-2">
+                    <label for="background-music" class="text-gray-700">背景音乐</label>
+                </div>
+            </div>
+
+            <button id="reset-progress" class="w-full bg-red-500 text-white py-2 px-4 rounded-lg hover:bg-red-600 transition duration-200">重置游戏进度</button>
+        </div>
+
+        <!-- Success Screen -->
+        <div id="success-screen" class="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
+            <div class="bg-white rounded-xl p-8 max-w-md animate__animated animate__zoomIn">
+                <div class="text-center mb-6">
+                    <div class="text-6xl mb-4">🎉</div>
+                    <h2 class="text-3xl font-bold text-indigo-600 mb-2">太棒了！</h2>
+                    <p class="text-gray-600">你真是太聪明了！</p>
+                </div>
+                <div class="stars-container flex justify-center mb-6">
+                    <div class="text-yellow-400 text-5xl">⭐⭐⭐</div>
+                </div>
+                <div class="flex justify-center">
+                    <button id="continue-button" class="bg-indigo-500 text-white py-3 px-6 rounded-full text-lg font-semibold hover:bg-indigo-600 transition duration-200">继续玩</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tutorial Overlay -->
+        <div id="tutorial-overlay" class="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-40">
+            <div class="bg-white rounded-xl p-6 max-w-md animate__animated animate__fadeIn">
+                <div id="tutorial-content" class="text-center mb-6">
+                    <!-- Tutorial content will be inserted here -->
+                </div>
+                <div class="flex justify-center">
+                    <button id="tutorial-button" class="bg-green-500 text-white py-2 px-6 rounded-full text-lg font-semibold hover:bg-green-600 transition duration-200">我知道了</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Audio Elements -->
+    <audio id="correct-sound" src="https://cdn.jsdelivr.net/gh/mozillazg/baidutts@master/baidutts/correct.mp3" preload="auto"></audio>
+    <audio id="wrong-sound" src="https://cdn.jsdelivr.net/gh/mozillazg/baidutts@master/baidutts/wrong.mp3" preload="auto"></audio>
+    <audio id="click-sound" src="https://cdn.jsdelivr.net/gh/mozillazg/baidutts@master/baidutts/click.mp3" preload="auto"></audio>
+    <audio id="success-sound" src="https://cdn.jsdelivr.net/gh/mozillazg/baidutts@master/baidutts/success.mp3" preload="auto"></audio>
+    <audio id="background-music-player" src="https://cdn.jsdelivr.net/gh/mozillazg/baidutts@master/baidutts/happy.mp3" loop preload="auto"></audio>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize game state
+            let gameState = {
+                currentGame: null,
+                currentLevel: 1,
+                maxNumber: 5, // Default for easy mode
+                score: 0,
+                stars: 1,
+                volume: 0.7,
+                soundEffects: true,
+                voiceGuide: true,
+                backgroundMusic: true,
+                itemType: 'mixed',
+                tutorialShown: {
+                    counting: false,
+                    beforeafter: false,
+                    sequence: false,
+                    matching: false,
+                    addsubtract: false
+                }
+            };
+
+            // Try to load saved state
+            try {
+                const savedState = localStorage.getItem('kidsMathGame');
+                if (savedState) {
+                    const parsedState = JSON.parse(savedState);
+                    gameState = {...gameState, ...parsedState};
+                    updateStarsDisplay();
+                }
+            } catch (e) {
+                console.error('Error loading saved state', e);
+            }
+
+            // Initialize volume
+            updateVolume();
+
+            // Initialize speech synthesis
+            const synth = window.speechSynthesis;
+            
+            // Speech function
+            function speak(text) {
+                if (!gameState.voiceGuide) return;
+                
+                // Cancel any ongoing speech
+                synth.cancel();
+                
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.lang = 'zh-CN';
+                utterance.volume = gameState.volume;
+                utterance.rate = 0.9; // Slightly slower for kids
+                
+                synth.speak(utterance);
+            }
+            
+            // Play sound function
+            function playSound(id) {
+                if (!gameState.soundEffects) return;
+                
+                const sound = document.getElementById(id);
+                sound.volume = gameState.volume;
+                sound.currentTime = 0;
+                // sound.play();
+            }
+            
+            // Update volume for all audio elements
+            function updateVolume() {
+                document.querySelectorAll('audio').forEach(audio => {
+                    audio.volume = gameState.volume;
+                });
+                
+                const bgMusic = document.getElementById('background-music-player');
+                if (gameState.backgroundMusic) {
+                    bgMusic.play().catch(e => console.log('Music autoplay prevented'));
+                } else {
+                    bgMusic.pause();
+                }
+            }
+            
+            // Save game state
+            function saveGameState() {
+                try {
+                    localStorage.setItem('kidsMathGame', JSON.stringify(gameState));
+                } catch (e) {
+                    console.error('Error saving game state', e);
+                }
+            }
+            
+            // Show guide character speech
+            function showSpeech(text, duration = 5000) {
+                const speechBubble = document.getElementById('speech-bubble');
+                speechBubble.textContent = text;
+                speechBubble.style.opacity = '1';
+                
+                setTimeout(() => {
+                    speechBubble.style.opacity = '0';
+                }, duration);
+            }
+            
+            // Add confetti effect
+            function addConfetti() {
+                const container = document.querySelector('.game-container');
+                const colors = ['#f44336', '#e91e63', '#9c27b0', '#673ab7', '#3f51b5', '#2196f3', '#03a9f4', '#00bcd4', '#009688', '#4CAF50', '#8BC34A', '#CDDC39', '#FFEB3B', '#FFC107', '#FF9800', '#FF5722'];
+                
+                for (let i = 0; i < 100; i++) {
+                    const confetti = document.createElement('div');
+                    confetti.className = 'confetti';
+                    confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                    confetti.style.left = Math.random() * 100 + 'vw';
+                    confetti.style.top = -10 + 'px';
+                    confetti.style.opacity = '1';
+                    confetti.style.transform = 'rotate(' + Math.random() * 360 + 'deg)';
+                    
+                    container.appendChild(confetti);
+                    
+                    // Animate confetti
+                    const animation = confetti.animate([
+                        { top: '-10px', opacity: 1 },
+                        { top: '100vh', opacity: 0 }
+                    ], {
+                        duration: 3000 + Math.random() * 2000,
+                        easing: 'cubic-bezier(0.37, 0, 0.63, 1)'
+                    });
+                    
+                    animation.onfinish = () => {
+                        confetti.remove();
+                    };
+                }
+            }
+            
+            // Show success screen
+            function showSuccessScreen() {
+                playSound('success-sound');
+                document.getElementById('success-screen').classList.remove('hidden');
+                addConfetti();
+                
+                // Add a star if they don't have all stars already
+                if (gameState.stars < 5) {
+                    gameState.stars++;
+                    saveGameState();
+                    updateStarsDisplay();
+                }
+                
+                speak('太棒了！你真是太聪明了！');
+            }
+            
+            // Update stars display
+            function updateStarsDisplay() {
+                const starsContainer = document.querySelector('.stars-earned');
+                const stars = starsContainer.querySelectorAll('div');
+                
+                for (let i = 0; i < stars.length; i++) {
+                    if (i < gameState.stars) {
+                        stars[i].classList.remove('opacity-30');
+                    } else {
+                        stars[i].classList.add('opacity-30');
+                    }
+                }
+            }
+            
+            // Show tutorial
+            function showTutorial(game) {
+                if (gameState.tutorialShown[game]) return;
+                
+                const overlay = document.getElementById('tutorial-overlay');
+                const content = document.getElementById('tutorial-content');
+                
+                let tutorialContent = '';
+                
+                switch(game) {
+                    case 'counting':
+                        tutorialContent = `
+                            <div class="mb-4">
+                                <div class="text-6xl mb-4">🔢</div>
+                                <h3 class="text-2xl font-bold text-red-600 mb-2">数一数游戏</h3>
+                                <p class="text-gray-600">数一数图片里有几个物品，然后点击正确的数字！</p>
+                            </div>
+                            <div class="flex justify-center mb-4">
+                                <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/svg/1f34e.svg" class="w-16 h-16 mx-1 animate__animated animate__bounce">
+                                <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/svg/1f34e.svg" class="w-16 h-16 mx-1 animate__animated animate__bounce">
+                                <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/svg/1f34e.svg" class="w-16 h-16 mx-1 animate__animated animate__bounce">
+                            </div>
+                        `;
+                        speak('数一数图片里有几个物品，然后点击正确的数字！');
+                        break;
+                    case 'beforeafter':
+                        tutorialContent = `
+                            <div class="mb-4">
+                                <div class="text-6xl mb-4">⬅️➡️</div>
+                                <h3 class="text-2xl font-bold text-yellow-600 mb-2">前后数字游戏</h3>
+                                <p class="text-gray-600">找出数字的前一个或后一个数字！</p>
+                            </div>
+                            <div class="flex justify-center items-center mb-4">
+                                <div class="text-4xl font-bold text-yellow-600 mx-2">2</div>
+                                <div class="text-4xl font-bold text-yellow-600 mx-2">3</div>
+                                <div class="text-4xl font-bold text-yellow-600 mx-2">4</div>
+                            </div>
+                        `;
+                        speak('找出数字的前一个或后一个数字！');
+                        break;
+                    case 'sequence':
+                        tutorialContent = `
+                            <div class="mb-4">
+                                <div class="text-6xl mb-4">📊</div>
+                                <h3 class="text-2xl font-bold text-green-600 mb-2">顺序数数游戏</h3>
+                                <p class="text-gray-600">从小到大，按顺序点击数字！</p>
+                            </div>
+                            <div class="flex justify-center flex-wrap mb-4 max-w-xs">
+                                <div class="number-btn bg-green-400 m-2 animate__animated animate__pulse">1</div>
+                                <div class="number-btn bg-green-400 m-2">2</div>
+                                <div class="number-btn bg-green-400 m-2">3</div>
+                                <div class="number-btn bg-green-400 m-2">4</div>
+                                <div class="number-btn bg-green-400 m-2">5</div>
+                            </div>
+                        `;
+                        speak('从小到大，按顺序点击数字！');
+                        break;
+                    case 'matching':
+                        tutorialContent = `
+                            <div class="mb-4">
+                                <div class="text-6xl mb-4">🔄</div>
+                                <h3 class="text-2xl font-bold text-blue-600 mb-2">数量配对游戏</h3>
+                                <p class="text-gray-600">把物品拖到对应数量的数字上！</p>
+                            </div>
+                            <div class="flex justify-center mb-4">
+                                <div class="flex items-center">
+                                    <div class="flex">
+                                        <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/svg/1f31f.svg" class="w-12 h-12 animate__animated animate__pulse">
+                                        <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/svg/1f31f.svg" class="w-12 h-12 animate__animated animate__pulse">
+                                    </div>
+                                    <div class="text-4xl mx-4">➡️</div>
+                                    <div class="number-btn bg-blue-400">2</div>
+                                </div>
+                            </div>
+                        `;
+                        speak('把物品拖到对应数量的数字上！');
+                        break;
+                    case 'addsubtract':
+                        tutorialContent = `
+                            <div class="mb-4">
+                                <div class="text-6xl mb-4">➕➖</div>
+                                <h3 class="text-2xl font-bold text-purple-600 mb-2">加一减一游戏</h3>
+                                <p class="text-gray-600">计算物品的总数，然后点击正确的答案！</p>
+                            </div>
+                            <div class="flex justify-center items-center mb-4">
+                                <div class="flex">
+                                    <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/svg/1f34e.svg" class="w-12 h-12">
+                                    <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/svg/1f34e.svg" class="w-12 h-12">
+                                </div>
+                                <div class="text-3xl mx-4">+</div>
+                                <div class="flex">
+                                    <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/svg/1f34e.svg" class="w-12 h-12">
+                                </div>
+                                <div class="text-3xl mx-4">=</div>
+                                <div class="number-btn bg-purple-400">3</div>
+                            </div>
+                        `;
+                        speak('计算物品的总数，然后点击正确的答案！');
+                        break;
+                }
+                
+                content.innerHTML = tutorialContent;
+                overlay.classList.remove('hidden');
+                
+                gameState.tutorialShown[game] = true;
+                saveGameState();
+            }
+            
+            // Create item element
+            function createItem(type, index) {
+                const item = document.createElement('div');
+                item.className = `game-item ${type} m-2`;
+                item.dataset.index = index;
+                
+                switch(type) {
+                    case 'apple':
+                        item.innerHTML = `
+                            <div class="apple-stem"></div>
+                            <div class="apple-leaf"></div>
+                            <div class="apple-body"></div>
+                        `;
+                        break;
+                    case 'star':
+                        item.innerHTML = `<div class="star-shape">⭐</div>`;
+                        break;
+                    case 'balloon':
+                        // Random balloon color
+                        const colors = ['#f44336', '#e91e63', '#9c27b0', '#673ab7', '#3f51b5', '#2196f3', '#03a9f4'];
+                        const color = colors[Math.floor(Math.random() * colors.length)];
+                        
+                        item.innerHTML = `
+                            <div class="balloon-body" style="background-color: ${color}"></div>
+                            <div class="balloon-tie" style="background-color: ${color}"></div>
+                            <div class="balloon-string"></div>
+                        `;
+                        break;
+                    default:
+                        // Use emojis as fallback
+                        const emojis = ['🍎', '🍊', '🍇', '🍓', '🍌'];
+                        item.innerHTML = `<div class="text-5xl">${emojis[index % emojis.length]}</div>`;
+                }
+                
+                return item;
+            }
+            
+            // Determine item type based on settings
+            function getItemType() {
+                switch(gameState.itemType) {
+                    case 'fruits':
+                        return 'apple';
+                    case 'stars':
+                        return 'star';
+                    case 'mixed':
+                    default:
+                        const types = ['apple', 'star', 'balloon'];
+                        return types[Math.floor(Math.random() * types.length)];
+                }
+            }
+            
+            // Add visual bubble effect on click
+            document.querySelector('.game-container').addEventListener('click', function(e) {
+                const bubble = document.createElement('div');
+                bubble.className = 'bubble';
+                bubble.style.left = e.clientX + 'px';
+                bubble.style.top = e.clientY + 'px';
+                this.appendChild(bubble);
+                
+                setTimeout(() => {
+                    bubble.remove();
+                }, 2000);
+                
+                playSound('click-sound');
+            });
+            
+            // Initialize counting game
+            function initCountingGame() {
+                const container = document.getElementById('counting-items-container');
+                const options = document.getElementById('counting-options');
+                
+                container.innerHTML = '';
+                options.innerHTML = '';
+                
+                // Generate random count between 1 and maxNumber
+                const count = Math.floor(Math.random() * gameState.maxNumber) + 1;
+                const itemType = getItemType();
+                
+                // Create items
+                for (let i = 0; i < count; i++) {
+                    const item = createItem(itemType, i);
+                    item.classList.add('float');
+                    container.appendChild(item);
+                }
+                
+                // Create number options
+                const numbers = [];
+                numbers.push(count); // Correct answer
+                
+                // Add some wrong answers
+                while (numbers.length < Math.min(4, gameState.maxNumber)) {
+                    const num = Math.floor(Math.random() * gameState.maxNumber) + 1;
+                    if (!numbers.includes(num)) {
+                        numbers.push(num);
+                    }
+                }
+                
+                // Shuffle options
+                numbers.sort(() => Math.random() - 0.5);
+                
+                // Create option buttons
+                numbers.forEach(num => {
+                    const btn = document.createElement('div');
+                    btn.className = 'number-btn bg-red-400 text-white text-4xl cursor-pointer';
+                    btn.textContent = num;
+                    btn.dataset.value = num;
+                    
+                    btn.addEventListener('click', function() {
+                        if (parseInt(this.dataset.value) === count) {
+                            this.classList.add('pulse');
+                            playSound('correct-sound');
+                            
+                            // Add animation to all items
+                            const items = container.querySelectorAll('.game-item');
+                            items.forEach(item => {
+                                item.classList.add('jump');
+                            });
+                            
+                            speak('太棒了！');
+                            showSpeech('太棒了！答对了！');
+                            
+                            setTimeout(() => {
+                                showSuccessScreen();
+                            }, 1500);
+                        } else {
+                            this.classList.add('shake');
+                            playSound('wrong-sound');
+                            speak('再试一次');
+                            showSpeech('再试一次');
+                            
+                            setTimeout(() => {
+                                this.classList.remove('shake');
+                            }, 500);
+                        }
+                    });
+                    
+                    options.appendChild(btn);
+                });
+                
+                speak(`数一数有几个${itemType === 'apple' ? '苹果' : itemType === 'star' ? '星星' : '气球'}`);
+                showSpeech(`数一数有几个${itemType === 'apple' ? '苹果' : itemType === 'star' ? '星星' : '气球'}`);
+                
+                // Show tutorial if first time
+                if (!gameState.tutorialShown.counting) {
+                    showTutorial('counting');
+                }
+                
+                // Add hint arrow effect after delay
+                setTimeout(() => {
+                    const items = container.querySelectorAll('.game-item');
+                    let index = 0;
+                    
+                    const pointInterval = setInterval(() => {
+                        if (index >= items.length) {
+                            clearInterval(pointInterval);
+                            
+                            setTimeout(() => {
+                                const numButtons = options.querySelectorAll('.number-btn');
+                                const correctBtn = Array.from(numButtons).find(btn => parseInt(btn.dataset.value) === count);
+                                
+                                if (correctBtn) {
+                                    const arrow = document.createElement('div');
+                                    arrow.className = 'hint-arrow';
+                                    arrow.style.left = (correctBtn.offsetLeft + correctBtn.offsetWidth / 2) + 'px';
+                                    arrow.style.top = (correctBtn.offsetTop - 60) + 'px';
+                                    document.querySelector('.game-container').appendChild(arrow);
+                                    
+                                    setTimeout(() => {
+                                        arrow.remove();
+                                    }, 3000);
+                                }
+                            }, 1000);
+                            
+                            return;
+                        }
+                        
+                        const item = items[index];
+                        item.classList.add('pulse');
+                        
+                        setTimeout(() => {
+                            item.classList.remove('pulse');
+                        }, 800);
+                        
+                        index++;
+                    }, 800);
+                }, 3000);
+            }
+            
+            // Initialize before/after game
+            function initBeforeAfterGame() {
+                const current = document.getElementById('beforeafter-current');
+                const options = document.getElementById('beforeafter-options');
+                const label = document.getElementById('beforeafter-label');
+                
+                options.innerHTML = '';
+                
+                // Generate random number between 2 and maxNumber-1 (so we have both before and after)
+                let num;
+                if (gameState.maxNumber <= 2) {
+                    num = 2; // Only option if maxNumber is 2
+                } else {
+                    num = Math.floor(Math.random() * (gameState.maxNumber - 2)) + 2;
+                }
+                
+                current.textContent = num;
+                
+                // Randomly decide if we're asking for before or after
+                const isBefore = Math.random() > 0.5;
+                const correctAnswer = isBefore ? num - 1 : num + 1;
+                
+                label.textContent = isBefore ? '哪个数字在前面？' : '哪个数字在后面？';
+                
+                // Generate options (correct + 2 wrong answers)
+                const answers = [correctAnswer];
+                
+                while (answers.length < 3) {
+                    const wrongAnswer = Math.floor(Math.random() * gameState.maxNumber) + 1;
+                    if (!answers.includes(wrongAnswer) && wrongAnswer !== num) {
+                        answers.push(wrongAnswer);
+                    }
+                }
+                
+                // Shuffle options
+                answers.sort(() => Math.random() - 0.5);
+                
+                // Create option buttons
+                answers.forEach(answer => {
+                    const btn = document.createElement('div');
+                    btn.className = 'number-btn bg-yellow-400 text-white text-4xl cursor-pointer';
+                    btn.textContent = answer;
+                    
+                    btn.addEventListener('click', function() {
+                        if (parseInt(this.textContent) === correctAnswer) {
+                            this.classList.add('pulse');
+                            playSound('correct-sound');
+                            speak('太棒了！');
+                            showSpeech('太棒了！答对了！');
+                            
+                            setTimeout(() => {
+                                showSuccessScreen();
+                            }, 1500);
+                        } else {
+                            this.classList.add('shake');
+                            playSound('wrong-sound');
+                            speak('再试一次');
+                            showSpeech('再试一次');
+                            
+                            setTimeout(() => {
+                                this.classList.remove('shake');
+                            }, 500);
+                        }
+                    });
+                    
+                    options.appendChild(btn);
+                });
+                
+                speak(isBefore ? `${num}的前面是几？` : `${num}的后面是几？`);
+                showSpeech(isBefore ? `${num}的前面是几？` : `${num}的后面是几？`);
+                
+                // Show tutorial if first time
+                if (!gameState.tutorialShown.beforeafter) {
+                    showTutorial('beforeafter');
+                }
+                
+                // Add arrows to indicate before/after
+                setTimeout(() => {
+                    const arrowDirection = isBefore ? 'left' : 'right';
+                    const arrowPosition = isBefore ? {left: current.offsetLeft - 60} : {left: current.offsetLeft + current.offsetWidth + 10};
+                    
+                    const arrow = document.createElement('div');
+                    arrow.className = 'hint-arrow';
+                    arrow.style.left = arrowPosition.left + 'px';
+                    arrow.style.top = current.offsetTop + current.offsetHeight / 2 + 'px';
+                    
+                    // Adjust arrow direction
+                    if (isBefore) {
+                        arrow.style.transform = 'rotate(-135deg)';
+                    } else {
+                        arrow.style.transform = 'rotate(45deg)';
+                    }
+                    
+                    document.querySelector('.game-container').appendChild(arrow);
+                    
+                    setTimeout(() => {
+                        arrow.remove();
+                        
+                        // Now point to the correct answer
+                        const numButtons = options.querySelectorAll('.number-btn');
+                        const correctBtn = Array.from(numButtons).find(btn => parseInt(btn.textContent) === correctAnswer);
+                        
+                        if (correctBtn) {
+                            const answerArrow = document.createElement('div');
+                            answerArrow.className = 'hint-arrow';
+                            answerArrow.style.left = (correctBtn.offsetLeft + correctBtn.offsetWidth / 2) + 'px';
+                            answerArrow.style.top = (correctBtn.offsetTop - 60) + 'px';
+                            document.querySelector('.game-container').appendChild(answerArrow);
+                            
+                            setTimeout(() => {
+                                answerArrow.remove();
+                            }, 3000);
+                        }
+                    }, 3000);
+                }, 4000);
+            }
+            
+            // Initialize sequence game
+            function initSequenceGame() {
+                const container = document.getElementById('sequence-container');
+                container.innerHTML = '';
+                
+                // Generate sequence 1 to 5 (or maxNumber if smaller)
+                const max = Math.min(5, gameState.maxNumber);
+                const numbers = Array.from({length: max}, (_, i) => i + 1);
+                
+                // Shuffle the numbers
+                const shuffled = [...numbers].sort(() => Math.random() - 0.5);
+                
+                // Current number to click (start with 1)
+                let currentNumber = 1;
+                
+                // Create number buttons
+                shuffled.forEach(num => {
+                    const btn = document.createElement('div');
+                    btn.className = 'number-btn bg-green-400 text-white text-4xl cursor-pointer';
+                    btn.textContent = num;
+                    
+                    btn.addEventListener('click', function() {
+                        if (parseInt(this.textContent) === currentNumber) {
+                            this.classList.add('pulse');
+                            playSound('correct-sound');
+                            
+                            // Update current number
+                            currentNumber++;
+                            
+                            // Check if finished
+                            if (currentNumber > max) {
+                                speak('太棒了！');
+                                showSpeech('真厉害！你会按顺序数数了！');
+                                
+                                setTimeout(() => {
+                                    showSuccessScreen();
+                                }, 1500);
+                            } else {
+                                speak(currentNumber.toString());
+                            }
+                        } else {
+                            this.classList.add('shake');
+                            playSound('wrong-sound');
+                            speak('再试一次');
+                            showSpeech(`现在要找数字${currentNumber}`);
+                            
+                            setTimeout(() => {
+                                this.classList.remove('shake');
+                            }, 500);
+                        }
+                    });
+                    
+                    container.appendChild(btn);
+                });
+                
+                speak('从1开始，按顺序点击数字');
+                showSpeech('从1开始，按顺序点击数字');
+                
+                // Show tutorial if first time
+                if (!gameState.tutorialShown.sequence) {
+                    showTutorial('sequence');
+                }
+                
+                // Add hint arrow after delay
+                setTimeout(() => {
+                    const numButtons = container.querySelectorAll('.number-btn');
+                    const firstBtn = Array.from(numButtons).find(btn => parseInt(btn.textContent) === 1);
+                    
+                    if (firstBtn) {
+                        const arrow = document.createElement('div');
+                        arrow.className = 'hint-arrow';
+                        arrow.style.left = (firstBtn.offsetLeft + firstBtn.offsetWidth / 2) + 'px';
+                        arrow.style.top = (firstBtn.offsetTop - 60) + 'px';
+                        document.querySelector('.game-container').appendChild(arrow);
+                        
+                        setTimeout(() => {
+                            arrow.remove();
+                        }, 3000);
+                    }
+                }, 3000);
+            }
+            
+            // Initialize matching game
+            function initMatchingGame() {
+                const itemsContainer = document.getElementById('matching-items');
+                const numbersContainer = document.getElementById('matching-numbers');
+                
+                itemsContainer.innerHTML = '';
+                numbersContainer.innerHTML = '';
+                
+                // Generate 3 random numbers (1 to maxNumber)
+                const numbers = [];
+                while (numbers.length < 3) {
+                    const num = Math.floor(Math.random() * gameState.maxNumber) + 1;
+                    if (!numbers.includes(num)) {
+                        numbers.push(num);
+                    }
+                }
+                
+                // Create number drop zones
+                numbers.forEach(num => {
+                    const dropZone = document.createElement('div');
+                    dropZone.className = 'drop-zone w-28 h-28 m-4 flex items-center justify-center';
+                    dropZone.dataset.number = num;
+                    
+                    const numLabel = document.createElement('div');
+                    numLabel.className = 'text-4xl font-bold text-blue-600';
+                    numLabel.textContent = num;
+                    
+                    dropZone.appendChild(numLabel);
+                    numbersContainer.appendChild(
+                        
+                    );
+                    
+                    // Setup event handlers for drop target
+                    dropZone.addEventListener('dragover', function(e) {
+                        e.preventDefault();
+                        this.classList.add('highlight');
+                    });
+                    
+                    dropZone.addEventListener('dragleave', function() {
+                        this.classList.remove('highlight');
+                    });
+                    
+                    dropZone.addEventListener('drop', function(e) {
+                        e.preventDefault();
+                        this.classList.remove('highlight');
+                        
+                        const itemCount = e.dataTransfer.getData('count');
+                        const itemId = e.dataTransfer.getData('id');
+                        const item = document.getElementById(itemId);
+                        
+                        if (parseInt(itemCount) === parseInt(this.dataset.number)) {
+                            // Correct match
+                            playSound('correct-sound');
+                            
+                            // Move item to center of dropzone
+                            const rect = this.getBoundingClientRect();
+                            const itemRect = item.getBoundingClientRect();
+                            const centerX = rect.left + rect.width/2 - itemRect.width/2;
+                            const centerY = rect.top + rect.height/2 - itemRect.height/2;
+                            
+                            item.style.position = 'fixed';
+                            item.style.left = centerX + 'px';
+                            item.style.top = centerY + 'px';
+                            item.classList.add('pulse');
+                            this.classList.add('bg-green-100');
+                            item.dataset.matched = 'true';
+                            
+                            // Check if all items are matched
+                            const allItems = itemsContainer.querySelectorAll('.item-group');
+                            const allMatched = Array.from(allItems).every(item => item.dataset.matched === 'true');
+                            
+                            if (allMatched) {
+                                speak('太棒了！');
+                                showSpeech('太棒了！全部配对正确！');
+                                
+                                setTimeout(() => {
+                                    showSuccessScreen();
+                                }, 1500);
+                            }
+                        } else {
+                            // Wrong match
+                            playSound('wrong-sound');
+                            speak('再试一次');
+                            showSpeech('再试一次');
+                            item.classList.add('shake');
+                            
+                            setTimeout(() => {
+                                item.classList.remove('shake');
+                            }, 500);
+                        }
+                    });
+                });
+                
+                // Create draggable item groups
+                numbers.forEach(num => {
+                    const itemGroup = document.createElement('div');
+                    itemGroup.className = 'item-group border-2 border-transparent p-2 rounded-lg m-2 draggable';
+                    itemGroup.id = 'item-group-' + num;
+                    itemGroup.draggable = true;
+                    itemGroup.dataset.count = num;
+                    
+                    // Add drag event handlers
+                    itemGroup.addEventListener('dragstart', function(e) {
+                        e.dataTransfer.setData('count', this.dataset.count);
+                        e.dataTransfer.setData('id', this.id);
+                        this.classList.add('opacity-50');
+                    });
+                    
+                    itemGroup.addEventListener('dragend', function() {
+                        this.classList.remove('opacity-50');
+                    });
+                    
+                    // Create items
+                    const itemType = getItemType();
+                    const itemsContainerInner = document.createElement('div');
+                    itemsContainerInner.className = 'flex flex-wrap justify-center';
+                    
+                    for (let i = 0; i < num; i++) {
+                        const item = createItem(itemType, i);
+                        item.classList.add('float');
+                        itemsContainerInner.appendChild(item);
+                    }
+                    
+                    itemGroup.appendChild(itemsContainerInner);
+                    itemsContainer.appendChild(itemGroup);
+                });
+                
+                speak('把物品拖到对应数量的数字上');
+                showSpeech('把物品拖到对应数量的数字上');
+                
+                // Show tutorial if first time
+                if (!gameState.tutorialShown.matching) {
+                    showTutorial('matching');
+                }
+                
+                // Add touch support for mobile devices
+                const draggables = document.querySelectorAll('.draggable');
+                let activeItem = null;
+                
+                draggables.forEach(item => {
+                    item.addEventListener('touchstart', function(e) {
+                        e.preventDefault();
+                        activeItem = this;
+                        this.classList.add('opacity-50');
+                    });
+                });
+                
+                document.addEventListener('touchmove', function(e) {
+                    if (!activeItem) return;
+                    
+                    const touch = e.touches[0];
+                    activeItem.style.position = 'fixed';
+                    activeItem.style.left = (touch.clientX - activeItem.offsetWidth / 2) + 'px';
+                    activeItem.style.top = (touch.clientY - activeItem.offsetHeight / 2) + 'px';
+                    
+                    // Check if over a drop zone
+                    const dropZones = document.querySelectorAll('.drop-zone');
+                    dropZones.forEach(zone => {
+                        zone.classList.remove('highlight');
+                        
+                        const rect = zone.getBoundingClientRect();
+                        if (touch.clientX > rect.left && touch.clientX < rect.right &&
+                            touch.clientY > rect.top && touch.clientY < rect.bottom) {
+                            zone.classList.add('highlight');
+                        }
+                    });
+                });
+                
+                document.addEventListener('touchend', function(e) {
+                    if (!activeItem) return;
+                    
+                    const touch = e.changedTouches[0];
+                    
+                    // Check if dropped on a drop zone
+                    const dropZones = document.querySelectorAll('.drop-zone');
+                    let dropped = false;
+                    
+                    dropZones.forEach(zone => {
+                        const rect = zone.getBoundingClientRect();
+                        if (touch.clientX > rect.left && touch.clientX < rect.right &&
+                            touch.clientY > rect.top && touch.clientY < rect.bottom) {
+                            
+                            // Simulate drop event
+                            zone.classList.remove('highlight');
+                            
+                            if (parseInt(activeItem.dataset.count) === parseInt(zone.dataset.number)) {
+                                // Correct match
+                                playSound('correct-sound');
+                                
+                                // Center in drop zone
+                                activeItem.style.left = (rect.left + rect.width/2 - activeItem.offsetWidth/2) + 'px';
+                                activeItem.style.top = (rect.top + rect.height/2 - activeItem.offsetHeight/2) + 'px';
+                                activeItem.classList.add('pulse');
+                                activeItem.classList.remove('opacity-50');
+                                zone.classList.add('bg-green-100');
+                                activeItem.dataset.matched = 'true';
+                                
+                                // Check if all items are matched
+                                const allItems = document.querySelectorAll('.item-group');
+                                const allMatched = Array.from(allItems).every(item => item.dataset.matched === 'true');
+                                
+                                if (allMatched) {
+                                    speak('太棒了！');
+                                    showSpeech('太棒了！全部配对正确！');
+                                    
+                                    setTimeout(() => {
+                                        showSuccessScreen();
+                                    }, 1500);
+                                }
+                            } else {
+                                // Wrong match
+                                playSound('wrong-sound');
+                                speak('再试一次');
+                                showSpeech('再试一次');
+                                activeItem.classList.add('shake');
+                                activeItem.classList.remove('opacity-50');
+                                
+                                setTimeout(() => {
+                                    activeItem.style.position = '';
+                                    activeItem.style.left = '';
+                                    activeItem.style.top = '';
+                                    activeItem.classList.remove('shake');
+                                }, 500);
+                            }
+                            
+                            dropped = true;
+                        }
+                    });
+                    
+                    if (!dropped) {
+                        // Return to original position if not dropped on a valid zone
+                        activeItem.style.position = '';
+                        activeItem.style.left = '';
+                        activeItem.style.top = '';
+                        activeItem.classList.remove('opacity-50');
+                    }
+                    
+                    activeItem = null;
+                });
+                
+                // Add hint arrow after delay
+                setTimeout(() => {
+                    const firstItem = itemsContainer.querySelector('.item-group');
+                    const firstDropZone = numbersContainer.querySelector(`.drop-zone[data-number="${firstItem.dataset.count}"]`);
+                    
+                    if (firstItem && firstDropZone) {
+                        // Create arrow from item to dropzone
+                        const arrowFrom = firstItem.getBoundingClientRect();
+                        const arrowTo = firstDropZone.getBoundingClientRect();
+                        
+                        const arrow = document.createElement('div');
+                        arrow.className = 'hint-arrow';
+                        arrow.style.left = (arrowFrom.left + arrowFrom.width / 2) + 'px';
+                        arrow.style.top = (arrowFrom.top + arrowFrom.height + 20) + 'px';
+                        document.querySelector('.game-container').appendChild(arrow);
+                        
+                        // Animate arrow path
+                        let progress = 0;
+                        const startX = arrowFrom.left + arrowFrom.width / 2;
+                        const startY = arrowFrom.top + arrowFrom.height + 20;
+                        const endX = arrowTo.left + arrowTo.width / 2;
+                        const endY = arrowTo.top - 60;
+                        
+                        const arrowAnim = setInterval(() => {
+                            progress += 0.02;
+                            if (progress >= 1) {
+                                clearInterval(arrowAnim);
+                                setTimeout(() => {
+                                    arrow.remove();
+                                }, 1000);
+                                return;
+                            }
+                            
+                            const x = startX + (endX - startX) * progress;
+                            const y = startY + (endY - startY) * progress;
+                            
+                            arrow.style.left = x + 'px';
+                            arrow.style.top = y + 'px';
+                        }, 50);
+                    }
+                }, 3000);
+            }
+            
+            // Initialize add/subtract game
+            function initAddSubtractGame() {
+                const container1 = document.getElementById('addsubtract-container1');
+                const container2 = document.getElementById('addsubtract-container2');
+                const options = document.getElementById('addsubtract-options');
+                const operator = document.getElementById('addsubtract-operator');
+                const question = document.getElementById('addsubtract-question');
+                
+                container1.innerHTML = '';
+                container2.innerHTML = '';
+                options.innerHTML = '';
+                
+                // Randomly decide if addition or subtraction
+                const isAddition = Math.random() > 0.3; // 70% chance of addition for younger kids
+                operator.textContent = isAddition ? '+' : '-';
+                
+                let num1, num2, result;
+                const itemType = getItemType();
+                
+                if (isAddition) {
+                    // For addition, both numbers should be small
+                    num1 = Math.floor(Math.random() * Math.min(5, gameState.maxNumber - 1)) + 1;
+                    num2 = Math.floor(Math.random() * Math.min(5, gameState.maxNumber - num1)) + 1;
+                    result = num1 + num2;
+                    
+                    question.textContent = `${num1} + ${num2} = ?`;
+                } else {
+                    // For subtraction, first number should be larger
+                    num1 = Math.floor(Math.random() * (gameState.maxNumber - 1)) + 2; // At least 2
+                    num2 = Math.floor(Math.random() * num1); // Smaller than num1
+                    result = num1 - num2;
+                    
+                    question.textContent = `${num1} - ${num2} = ?`;
+                }
+                
+                // Create items for first container
+                for (let i = 0; i < num1; i++) {
+                    const item = createItem(itemType, i);
+                    container1.appendChild(item);
+                }
+                
+                // Create items for second container
+                for (let i = 0; i < num2; i++) {
+                    const item = createItem(itemType, i);
+                    container2.appendChild(item);
+                }
+                
+                // Create answer options
+                const answers = [result]; // Correct answer
+                
+                while (answers.length < 3) {
+                    let wrongAnswer;
+                    if (isAddition) {
+                        wrongAnswer = Math.floor(Math.random() * (num1 + num2 + 3)) + 1;
+                    } else {
+                        wrongAnswer = Math.floor(Math.random() * (num1 + 1));
+                    }
+                    
+                    if (!answers.includes(wrongAnswer)) {
+                        answers.push(wrongAnswer);
+                    }
+                }
+                
+                // Shuffle answers
+                answers.sort(() => Math.random() - 0.5);
+                
+                // Create option buttons
+                answers.forEach(answer => {
+                    const btn = document.createElement('div');
+                    btn.className = 'number-btn bg-purple-400 text-white text-4xl cursor-pointer';
+                    btn.textContent = answer;
+                    
+                    btn.addEventListener('click', function() {
+                        if (parseInt(this.textContent) === result) {
+                            this.classList.add('pulse');
+                            playSound('correct-sound');
+                            speak('太棒了！');
+                            showSpeech('太棒了！答对了！');
+                            
+                            // Animate the items to show the operation
+                            if (isAddition) {
+                                // Move first set to result location
+                                const items1 = container1.querySelectorAll('.game-item');
+                                items1.forEach(item => {
+                                    item.classList.add('float');
+                                });
+                                
+                                // Move second set to result location with delay
+                                setTimeout(() => {
+                                    const items2 = container2.querySelectorAll('.game-item');
+                                    items2.forEach(item => {
+                                        item.classList.add('jump');
+                                    });
+                                }, 500);
+                            } else {
+                                // For subtraction, fade out the items being subtracted
+                                const items2 = container2.querySelectorAll('.game-item');
+                                items2.forEach(item => {
+                                    item.style.opacity = '0.2';
+                                    item.classList.add('shake');
+                                });
+                            }
+                            
+                            setTimeout(() => {
+                                showSuccessScreen();
+                            }, 1500);
+                        } else {
+                            this.classList.add('shake');
+                            playSound('wrong-sound');
+                            speak('再试一次');
+                            showSpeech('再试一次');
+                            
+                            setTimeout(() => {
+                                this.classList.remove('shake');
+                            }, 500);
+                        }
+                    });
+                    
+                    options.appendChild(btn);
+                });
+                
+                if (isAddition) {
+                    speak(`${num1}加${num2}等于几？`);
+                    showSpeech(`${num1}加${num2}等于几？`);
+                } else {
+                    speak(`${num1}减${num2}等于几？`);
+                    showSpeech(`${num1}减${num2}等于几？`);
+                }
+                
+                // Show tutorial if first time
+                if (!gameState.tutorialShown.addsubtract) {
+                    showTutorial('addsubtract');
+                }
+                
+                // Add animation to illustrate the operation
+                setTimeout(() => {
+                    if (isAddition) {
+                        // For addition, highlight both containers then show result
+                        container1.classList.add('pulse');
+                        
+                        setTimeout(() => {
+                            container1.classList.remove('pulse');
+                            container2.classList.add('pulse');
+                            
+                            setTimeout(() => {
+                                container2.classList.remove('pulse');
+                                
+                                // Now point to the correct answer
+                                const numButtons = options.querySelectorAll('.number-btn');
+                                const correctBtn = Array.from(numButtons).find(btn => parseInt(btn.textContent) === result);
+                                
+                                if (correctBtn) {
+                                    const arrow = document.createElement('div');
+                                    arrow.className = 'hint-arrow';
+                                    arrow.style.left = (correctBtn.offsetLeft + correctBtn.offsetWidth / 2) + 'px';
+                                    arrow.style.top = (correctBtn.offsetTop - 60) + 'px';
+                                    document.querySelector('.game-container').appendChild(arrow);
+                                    
+                                    setTimeout(() => {
+                                        arrow.remove();
+                                    }, 3000);
+                                }
+                            }, 1000);
+                        }, 1000);
+                    } else {
+                        // For subtraction, highlight first container, then show items being removed
+                        container1.classList.add('pulse');
+                        
+                        setTimeout(() => {
+                            container1.classList.remove('pulse');
+                            
+                            const items2 = container2.querySelectorAll('.game-item');
+                            items2.forEach(item => {
+                                item.classList.add('pulse');
+                            });
+                            
+                            setTimeout(() => {
+                                items2.forEach(item => {
+                                    item.classList.remove('pulse');
+                                    item.classList.add('opacity-50');
+                                });
+                                
+                                // Now point to the correct answer
+                                const numButtons = options.querySelectorAll('.number-btn');
+                                const correctBtn = Array.from(numButtons).find(btn => parseInt(btn.textContent) === result);
+                                
+                                if (correctBtn) {
+                                    const arrow = document.createElement('div');
+                                    arrow.className = 'hint-arrow';
+                                    arrow.style.left = (correctBtn.offsetLeft + correctBtn.offsetWidth / 2) + 'px';
+                                    arrow.style.top = (correctBtn.offsetTop - 60) + 'px';
+                                    document.querySelector('.game-container').appendChild(arrow);
+                                    
+                                    setTimeout(() => {
+                                        arrow.remove();
+                                    }, 3000);
+                                }
+                            }, 1000);
+                        }, 1000);
+                    }
+                }, 3000);
+            }
+            
+            // Initialize game based on selection
+            function initGame(gameType) {
+                gameState.currentGame = gameType;
+                
+                // Hide welcome screen and show selected game
+                document.getElementById('welcome-screen').classList.add('hidden');
+                document.getElementById(gameType + '-game').classList.remove('hidden');
+                
+                // Initialize the selected game
+                switch(gameType) {
+                    case 'counting':
+                        initCountingGame();
+                        break;
+                    case 'beforeafter':
+                        initBeforeAfterGame();
+                        break;
+                    case 'sequence':
+                        initSequenceGame();
+                        break;
+                    case 'matching':
+                        initMatchingGame();
+                        break;
+                    case 'addsubtract':
+                        initAddSubtractGame();
+                        break;
+                }
+                
+                saveGameState();
+            }
+            
+            // Game selection buttons
+            document.querySelectorAll('[data-game]').forEach(button => {
+                button.addEventListener('click', function() {
+                    const gameType = this.dataset.game;
+                    initGame(gameType);
+                });
+            });
+            
+            // Back buttons
+            document.querySelectorAll('[id$="-back"]').forEach(button => {
+                button.addEventListener('click', function() {
+                    // Hide current game and show welcome screen
+                    document.getElementById(gameState.currentGame + '-game').classList.add('hidden');
+                    document.getElementById('welcome-screen').classList.remove('hidden');
+                    gameState.currentGame = null;
+                    saveGameState();
+                });
+            });
+            
+            // Continue button on success screen
+            document.getElementById('continue-button').addEventListener('click', function() {
+                document.getElementById('success-screen').classList.add('hidden');
+                
+                if (gameState.currentGame) {
+                    // Restart the current game
+                    switch(gameState.currentGame) {
+                        case 'counting':
+                            initCountingGame();
+                            break;
+                        case 'beforeafter':
+                            initBeforeAfterGame();
+                            break;
+                        case 'sequence':
+                            initSequenceGame();
+                            break;
+                        case 'matching':
+                            initMatchingGame();
+                            break;
+                        case 'addsubtract':
+                            initAddSubtractGame();
+                            break;
+                    }
+                } else {
+                    // Return to main menu
+                    document.getElementById('welcome-screen').classList.remove('hidden');
+                }
+            });
+            
+            // Tutorial button
+            document.getElementById('tutorial-button').addEventListener('click', function() {
+                document.getElementById('tutorial-overlay').classList.add('hidden');
+            });
+            
+            // Settings panel toggle
+            document.getElementById('settings-toggle').addEventListener('click', function() {
+                document.getElementById('settings-panel').classList.add('active');
+            });
+            
+            document.getElementById('settings-close').addEventListener('click', function() {
+                document.getElementById('settings-panel').classList.remove('active');
+            });
+            
+            // Volume control
+            document.getElementById('volume-control').addEventListener('input', function() {
+                gameState.volume = parseFloat(this.value);
+                updateVolume();
+                saveGameState();
+            });
+            
+            // Set volume from state
+            document.getElementById('volume-control').value = gameState.volume;
+            
+            // Difficulty settings
+            document.querySelectorAll('input[name="difficulty"]').forEach(radio => {
+                radio.addEventListener('change', function() {
+                    switch(this.value) {
+                        case 'easy':
+                            gameState.maxNumber = 5;
+                            break;
+                        case 'medium':
+                            gameState.maxNumber = 10;
+                            break;
+                        case 'hard':
+                            gameState.maxNumber = 20;
+                            break;
+                    }
+                    saveGameState();
+                });
+            });
+            
+            // Set difficulty from state
+            if (gameState.maxNumber <= 5) {
+                document.getElementById('difficulty-easy').checked = true;
+            } else if (gameState.maxNumber <= 10) {
+                document.getElementById('difficulty-medium').checked = true;
+            } else {
+                document.getElementById('difficulty-hard').checked = true;
+            }
+            
+            // Item type settings
+            document.querySelectorAll('input[name="item-type"]').forEach(radio => {
+                radio.addEventListener('change', function() {
+                    gameState.itemType = this.value;
+                    saveGameState();
+                });
+            });
+            
+            // Set item type from state
+            document.getElementById(`item-${gameState.itemType}`).checked = true;
+            
+            // Sound settings
+            document.getElementById('sound-effects').addEventListener('change', function() {
+                gameState.soundEffects = this.checked;
+                saveGameState();
+            });
+            
+            document.getElementById('voice-guide').addEventListener('change', function() {
+                gameState.voiceGuide = this.checked;
+                saveGameState();
+            });
+            
+            document.getElementById('background-music').addEventListener('change', function() {
+                gameState.backgroundMusic = this.checked;
+                updateVolume();
+                saveGameState();
+            });
+            
+            // Set sound settings from state
+            document.getElementById('sound-effects').checked = gameState.soundEffects;
+            document.getElementById('voice-guide').checked = gameState.voiceGuide;
+            document.getElementById('background-music').checked = gameState.backgroundMusic;
+            
+            // Reset progress button
+            document.getElementById('reset-progress').addEventListener('click', function() {
+                if (confirm('确定要重置游戏进度吗？')) {
+                    localStorage.removeItem('kidsMathGame');
+                    location.reload();
+                }
+            });
+            
+            // Welcome message
+            setTimeout(() => {
+                speak('欢迎来到欢乐数数游戏！请选择一个游戏开始。');
+                showSpeech('欢迎来到欢乐数数游戏！请选择一个游戏开始。');
+            }, 1000);
+        });
+    </script>
+</body>
+</html>

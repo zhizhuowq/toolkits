@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>字帖生成工具</title>
+    <style>
+        @font-face {
+            font-family: 'pangzhonghuaJT';
+            src: url('../../assets/fonts/庞中华简体.ttf') format('truetype');
+        }
+        @font-face {
+            font-family: 'pangzhonghuaXS';
+            src: url('../../assets/fonts/庞中华行书.ttf') format('truetype');
+        }
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+
+        .controls {
+            margin-bottom: 20px;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            max-width: 800px;
+        }
+
+        .preview {
+            /* margin-top: 20px; */
+        }
+
+        .grid-row {
+            display: flex;
+            flex-wrap: wrap;
+            /* gap: 2px; */
+            margin-bottom: 5px;
+        }
+
+        .grid-cell {
+            position: relative;
+            width: 80px;
+            height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            background-size: contain;
+        }
+
+        .character {
+            position: relative;
+            z-index: 1;
+        }
+
+        /* 网格类型样式 */
+        .tian {
+            background-image: url('data:image/svg+xml;charset=UTF-8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect x="0" y="0" width="100" height="100" fill="none" stroke="currentColor" stroke-width="1"/><path d="M50 0v100M0 50h100" stroke="currentColor" stroke-width="1"/></svg>');
+        }
+
+        .mi {
+            background-image: url('data:image/svg+xml;charset=UTF-8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect x="0" y="0" width="100" height="100" fill="none" stroke="currentColor" stroke-width="1"/><path d="M50 0v100M0 50h100M0 0l100 100M100 0L0 100" stroke="currentColor" stroke-width="1"/></svg>');
+        }
+
+        .jiu {
+            background-image: url('data:image/svg+xml;charset=UTF-8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect x="0" y="0" width="100" height="100" fill="none" stroke="currentColor" stroke-width="1"/><path d="M33 0v100M67 0v100M0 33h100M0 67h100" stroke="currentColor" stroke-width="1"/></svg>');
+        }
+
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+
+            #preview,
+            #preview * {
+                visibility: visible;
+            }
+
+            #preview {
+                position: absolute;
+                left: 0;
+                top: 0;
+            }
+
+            .grid-cell {
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+                image-rendering: crisp-edges; /* 强制高质量渲染 */
+                image-rendering: pixelated;  /* 防止模糊 */
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="controls">
+        <div>
+            <label>输入汉字：</label>
+            <textarea id="inputChars" placeholder="例如：你好\n我是中国人" rows="5" style="resize: none;" >中国是诗词的国度</textarea>
+        </div>
+        <div>
+            <label>网格类型：</label>
+            <select id="gridType">
+                <option value="mi">米字格</option>
+                <option value="tian">田字格</option>
+                <option value="jiu">九宫格</option>
+            </select>
+        </div>
+        <div>
+            <label>外部网格颜色：</label>
+            <input type="color" id="gridColor" value="#ff0000" />
+        </div>
+        <div>
+            <label>内部网格颜色：</label>
+            <input type="color" id="lightGridColor" value="#ff3333" />
+        </div>
+        <div>
+            <label>深色字数：</label>
+            <input type="number" id="darkCount" value="1" min="1" />
+        </div>
+        <div>
+            <label>浅色字数：</label>
+            <input type="number" id="lightCount" value="17" min="0" />
+        </div>
+        <div>
+            <label>字体：</label>
+            <select id="fontFamily">
+                <option value="pangzhonghuaJT">庞中华简体</option>
+                <option value="pangzhonghuaXS">庞中华行书</option>
+                <option value="Arial">Arial</option>
+                <option value="SimSun">宋体</option>
+                <option value="SimHei">黑体</option>
+                <option value="KaiTi">楷体</option>
+                <option value="FangSong">仿宋</option>
+            </select>
+        </div>
+        <div>
+            <label>字体大小：</label>
+            <input type="number" id="fontSize" value="32" min="10" />
+        </div>
+        <div>
+            <label>深色字体颜色：</label>
+            <input type="color" id="fontColor" value="#000000" />
+        </div>
+        <div>
+            <label>浅色字帖颜色：</label>
+            <input type="color" id="lightFontColor" value="#bbbbbb" />
+        </div>
+        <div>
+            <label>纸张类型：</label>
+            <select id="paperType">
+                <option value="A4">A4</option>
+                <option value="A5">A5</option>
+            </select>
+        </div>
+        <button onclick="generate()">生成字帖</button>
+        <button onclick="window.print()">导出PDF</button>
+    </div>
+
+    <div id="preview" class="preview"></div>
+
+    <script>
+        function generate() {
+            // 获取用户输入的参数
+            const input = document.getElementById("inputChars").value;
+            const gridType = document.getElementById("gridType").value;
+            const gridColor = document.getElementById("gridColor").value;
+            const lightGridColor = document.getElementById("lightGridColor").value;
+            const fontColor = document.getElementById("fontColor").value;
+            const lightFontColor = document.getElementById("lightFontColor").value;
+            const darkCount = parseInt(document.getElementById("darkCount").value) || 0;
+            const lightCount = parseInt(document.getElementById("lightCount").value) || 0;
+            const fontFamily = document.getElementById("fontFamily").value;
+            const fontSize = parseInt(document.getElementById("fontSize").value) || 24;
+            const paperType = document.getElementById("paperType").value;
+            const totalPerRow = darkCount + lightCount;
+
+            // 校验输入
+            if (!input) {
+                alert("请输入汉字");
+                return;
+            }
+
+            if (totalPerRow <= 0) {
+                alert("深色字数和浅色字数之和必须大于0");
+                return;
+            }
+
+            // 清空预览区域
+            const preview = document.getElementById("preview");
+            preview.innerHTML = "";
+
+            // 获取纸张尺寸并计算布局
+            const paperDimensions = getPaperDimensions(paperType);
+            const rowHeight = fontSize * 1.25 + 5; // 每行高度（包括间距）
+            const rowsPerPage = Math.floor((paperDimensions.height - 80) / rowHeight); // 每页行数
+            const charsPerRow = Math.min(
+                Math.floor((paperDimensions.width - 40) / (fontSize * 1.25)),
+                totalPerRow
+            ); // 每行汉字数不能超过 totalPerRow
+
+            // 将输入的汉字逐行处理
+            const lines = input.split("");
+            let currentPage = null;
+            let currentRowCount = 0;
+
+            lines.forEach((line) => {
+                const chars = line.split("");
+                for (let i = 0; i < chars.length; i += charsPerRow) {
+                    // 如果当前页满了，创建新页
+                    if (currentRowCount >= rowsPerPage || !currentPage) {
+                        currentPage = document.createElement("div");
+                        currentPage.className = "page";
+                        currentPage.style.pageBreakAfter = "always";
+                        currentPage.style.width = `${paperDimensions.width - 40}px`;
+                        currentPage.style.height = `${paperDimensions.height - 80}px`;
+                        currentPage.style.alignItems = "center";
+                        preview.appendChild(currentPage);
+                        currentRowCount = 0;
+                    }
+
+                    // 创建一行
+                    const row = document.createElement("div");
+                    row.className = "grid-row";
+
+                    // 处理当前行的汉字
+                    const rowChars = chars.slice(i, i + charsPerRow);
+                    rowChars.forEach((char) => {
+                        for (let j = 0; j < charsPerRow; j++) {
+                            // 创建网格单元格
+                            const cell = document.createElement("div");
+                            cell.className = `grid-cell ${gridType}`;
+                            cell.style.backgroundImage = generateGridSVG(gridType, gridColor,lightGridColor);
+                            cell.style.width = `${Math.ceil(fontSize * 1.25) + 1}px`;
+                            cell.style.height = `${Math.ceil(fontSize * 1.25) + 1}px`;
+                      
+                            // 创建汉字元素
+                            const charDiv = document.createElement("div");
+                            charDiv.className = "character";
+                            charDiv.textContent = char;
+                            charDiv.style.fontFamily = fontFamily;
+                            charDiv.style.fontSize = `${fontSize}px`;
+                            if(fontFamily=='pangzhonghuaXS'){
+                                charDiv.style.fontSize = `${fontSize*0.80}px`;
+                                charDiv.style.marginLeft = `${-fontSize*0.2}px`;
+                            }
+                            charDiv.style.color =
+                                j < darkCount
+                                    ? fontColor // 深色字体
+                                    : lightFontColor; // 浅色字体
+
+                            cell.appendChild(charDiv);
+                            row.appendChild(cell);
+                        }
+                    });
+
+                    currentPage.appendChild(row);
+                    currentRowCount++;
+                }
+            });
+        }
+
+        // 获取纸张尺寸（毫米转像素）
+        function getPaperDimensions(type) {
+            const dimensions = {
+                A4: { width: 210, height: 297 }, // 单位：毫米
+                A5: { width: 148, height: 210 },
+            };
+            const dpi = 96; // 假设屏幕分辨率为 96 DPI
+            const mmToPx = (mm) => (mm / 25.4) * dpi;
+            return {
+                width: mmToPx(dimensions[type].width),
+                height: mmToPx(dimensions[type].height),
+            };
+        }
+
+        // 生成网格的 SVG 背景
+        function generateGridSVG(type, color,lightGridColor) {
+            const lighterColor =lightGridColor// hexToRGBA(color, 1); // 内部线条颜色，90% 不透明度
+            const svgTemplates = {
+                tian: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100"><rect x="0" y="0" width="100" height="100" fill="none" stroke="${color}" stroke-width="0.5"/><path d="M50 0v100M0 50h100" stroke="${lighterColor}" stroke-width="0.5" stroke-dasharray="6 6"/></svg>`,
+                mi: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100"><rect x="0" y="0" width="100" height="100" fill="none" stroke="${color}" stroke-width="0.5"/><path d="M50 0v100M0 50h100M0 0l100 100M100 0L0 100" stroke="${lighterColor}" stroke-width="0.5" stroke-dasharray="6 6"/></svg>`,
+                jiu: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100"><rect x="0" y="0" width="100" height="100" fill="none" stroke="${color}" stroke-width="0.5"/><path d="M33 0v100M67 0v100M0 33h100M0 67h100" stroke="${lighterColor}" stroke-width="0.5" stroke-dasharray="6 6"/></svg>`,
+            };
+            return `url('data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svgTemplates[type])}')`;
+        }
+
+        // 将十六进制颜色转换为 RGBA 格式
+        function hexToRGBA(hex, alpha) {
+            const r = parseInt(hex.slice(1, 3), 16);
+            const g = parseInt(hex.slice(3, 5), 16);
+            const b = parseInt(hex.slice(5, 7), 16);
+            return `rgba(${r},${g},${b},${alpha})`;
+        }
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,1101 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>趣味数数乐园 - 儿童数学启蒙游戏</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&display=swap');
+        
+        :root {
+            --primary: #FF6B6B;
+            --secondary: #4ECDC4;
+            --accent: #FFD166;
+            --background: #F7FFF7;
+            --text: #2A2A2A;
+        }
+        
+        body {
+            font-family: 'Ma Shan Zheng', cursive, sans-serif;
+            background-color: var(--background);
+            color: var(--text);
+            touch-action: manipulation;
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
+        
+        .game-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 1rem;
+        }
+        
+        .btn-game {
+            background-color: var(--primary);
+            border-radius: 1rem;
+            padding: 0.75rem 1.5rem;
+            color: white;
+            font-size: 1.25rem;
+            transition: all 0.3s;
+            box-shadow: 0 4px 0 darken(var(--primary), 10%);
+            border: none;
+            cursor: pointer;
+        }
+        
+        .btn-game:hover, .btn-game:focus {
+            transform: translateY(2px);
+            box-shadow: 0 2px 0 darken(var(--primary), 10%);
+        }
+        
+        .btn-game:active {
+            transform: translateY(4px);
+            box-shadow: none;
+        }
+        
+        .game-item {
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .game-item:hover {
+            transform: scale(1.05);
+        }
+        
+        .game-item:active {
+            transform: scale(0.95);
+        }
+        
+        .number-btn {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.5rem;
+            margin: 0.5rem;
+            cursor: pointer;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            transition: all 0.2s;
+            background-color: white;
+        }
+        
+        .number-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+        }
+        
+        .number-btn:active {
+            transform: translateY(1px);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .drag-item {
+            touch-action: none;
+            cursor: grab;
+        }
+        
+        .drop-zone {
+            border: 3px dashed #ccc;
+            border-radius: 1rem;
+            min-height: 100px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: all 0.3s;
+        }
+        
+        .drop-zone.highlight {
+            border-color: var(--accent);
+            background-color: rgba(255, 209, 102, 0.2);
+        }
+        
+        .animal {
+            width: 40px;
+            height: 40px;
+            margin: 5px;
+            filter: drop-shadow(0 2px 3px rgba(0,0,0,0.2));
+        }
+        
+        .header-title {
+            color: var(--primary);
+            text-shadow: 2px 2px 0 var(--accent);
+        }
+        
+        .mode-card {
+            border-radius: 1rem;
+            overflow: hidden;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+            background-color: white;
+        }
+        
+        .mode-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 7px 15px rgba(0,0,0,0.15);
+        }
+        
+        .progress-bar {
+            height: 10px;
+            background-color: #eee;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background-color: var(--secondary);
+            border-radius: 5px;
+            transition: width 0.3s ease;
+        }
+        
+        .object-container {
+            min-height: 200px;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .hidden {
+            display: none !important;
+        }
+        
+        @media (max-width: 640px) {
+            .number-btn {
+                width: 50px;
+                height: 50px;
+                font-size: 1.25rem;
+            }
+            
+            .animal {
+                width: 35px;
+                height: 35px;
+            }
+        }
+        
+        /* 动画效果 */
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+        
+        .bounce {
+            animation: bounce 0.5s;
+        }
+        
+        @keyframes tada {
+            0% { transform: scale(1); }
+            10%, 20% { transform: scale(0.9) rotate(-3deg); }
+            30%, 50%, 70%, 90% { transform: scale(1.1) rotate(3deg); }
+            40%, 60%, 80% { transform: scale(1.1) rotate(-3deg); }
+            100% { transform: scale(1) rotate(0); }
+        }
+        
+        .tada {
+            animation: tada 0.8s;
+        }
+        
+        /* 星星评价样式 */
+        .star-container {
+            display: flex;
+            justify-content: center;
+            margin: 1rem 0;
+        }
+        
+        .star {
+            color: #ddd;
+            font-size: 2rem;
+            margin: 0 0.25rem;
+        }
+        
+        .star.filled {
+            color: var(--accent);
+        }
+    </style>
+</head>
+<body class="bg-blue-50">
+    <div class="game-container">
+        <!-- 游戏标题和导航 -->
+        <header class="text-center py-4">
+            <h1 class="text-4xl font-bold mb-2 header-title">趣味数数乐园</h1>
+            <p class="text-lg text-gray-600">快乐学习数字的神奇世界！</p>
+        </header>
+
+        <!-- 主菜单 -->
+        <div id="mainMenu" class="p-4">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- 数数练习 -->
+                <div class="mode-card cursor-pointer" onclick="startGame('countingPractice')">
+                    <div class="bg-red-400 p-4 text-white text-center">
+                        <i class="fas fa-calculator text-3xl mb-2"></i>
+                        <h3 class="text-xl font-bold">数数练习</h3>
+                    </div>
+                    <div class="p-4">
+                        <p>看看有多少个物品，选择正确的数字</p>
+                        <div class="mt-3 text-right">
+                            <span class="text-sm text-gray-500">适合年龄: 3-5岁</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 前后关系 -->
+                <div class="mode-card cursor-pointer" onclick="startGame('beforeAfter')">
+                    <div class="bg-blue-400 p-4 text-white text-center">
+                        <i class="fas fa-exchange-alt text-3xl mb-2"></i>
+                        <h3 class="text-xl font-bold">前后关系</h3>
+                    </div>
+                    <div class="p-4">
+                        <p>学习数字的前一个和后一个是什么</p>
+                        <div class="mt-3 text-right">
+                            <span class="text-sm text-gray-500">适合年龄: 3-5岁</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 计数游戏 -->
+                <div class="mode-card cursor-pointer" onclick="startGame('sequentialCounting')">
+                    <div class="bg-green-400 p-4 text-white text-center">
+                        <i class="fas fa-sort-numeric-up text-3xl mb-2"></i>
+                        <h3 class="text-xl font-bold">计数游戏</h3>
+                    </div>
+                    <div class="p-4">
+                        <p>按顺序点击数字或物品进行计数</p>
+                        <div class="mt-3 text-right">
+                            <span class="text-sm text-gray-500">适合年龄: 3-5岁</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 数量匹配 -->
+                <div class="mode-card cursor-pointer" onclick="startGame('numberMatching')">
+                    <div class="bg-purple-400 p-4 text-white text-center">
+                        <i class="fas fa-puzzle-piece text-3xl mb-2"></i>
+                        <h3 class="text-xl font-bold">数量匹配</h3>
+                    </div>
+                    <div class="p-4">
+                        <p>将数字与对应数量的物品匹配起来</p>
+                        <div class="mt-3 text-right">
+                            <span class="text-sm text-gray-500">适合年龄: 3-5岁</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 简单加减 -->
+                <div class="mode-card cursor-pointer" onclick="startGame('simpleAddSub')">
+                    <div class="bg-yellow-400 p-4 text-white text-center">
+                        <i class="fas fa-plus-minus text-3xl mb-2"></i>
+                        <h3 class="text-xl font-bold">简单加减</h3>
+                    </div>
+                    <div class="p-4">
+                        <p>通过图形学习简单的加法和减法</p>
+                        <div class="mt-3 text-right">
+                            <span class="text-sm text-gray-500">适合年龄: 4-5岁</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 游戏区域 -->
+        <div id="gameArea" class="hidden">
+            <div class="flex justify-between items-center mb-4">
+                <button id="backBtn" class="btn-game bg-gray-500" onclick="backToMenu()">
+                    <i class="fas fa-arrow-left mr-2"></i> 返回
+                </button>
+                <div>
+                    <span id="scoreDisplay" class="text-xl font-bold">分数: 0</span>
+                </div>
+            </div>
+            
+            <div class="progress-bar mb-4">
+                <div id="progressFill" class="progress-fill" style="width: 0%"></div>
+            </div>
+            
+            <div class="bg-white rounded-xl p-6 shadow-lg">
+                <h2 id="gameTitle" class="text-2xl font-bold text-center mb-4"></h2>
+                <p id="gameInstruction" class="text-lg text-center mb-6"></p>
+                
+                <!-- 数数练习游戏内容 -->
+                <div id="countingPracticeGame" class="game-content hidden">
+                    <div id="objectsContainer" class="object-container mb-6"></div>
+                    <p class="text-xl text-center mb-4">这里有多少个物品呢？</p>
+                    <div class="flex flex-wrap justify-center" id="numberOptions"></div>
+                </div>
+                
+                <!-- 前后关系游戏内容 -->
+                <div id="beforeAfterGame" class="game-content hidden">
+                    <div class="text-center mb-6">
+                        <div id="targetNumber" class="text-6xl font-bold mb-4"></div>
+                        <p id="questionType" class="text-xl"></p>
+                    </div>
+                    <div class="flex flex-wrap justify-center" id="numberOptionsBA"></div>
+                </div>
+                
+                <!-- 计数游戏内容 -->
+                <div id="sequentialCountingGame" class="game-content hidden">
+                    <p class="text-xl text-center mb-4">按顺序点击数字，从1开始!</p>
+                    <div class="flex flex-wrap justify-center" id="sequentialNumbers"></div>
+                </div>
+                
+                <!-- 数量匹配游戏内容 -->
+                <div id="numberMatchingGame" class="game-content hidden">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="numbers-section">
+                            <p class="text-center mb-2">数字</p>
+                            <div id="numberContainer" class="flex flex-wrap justify-center"></div>
+                        </div>
+                        <div class="objects-section">
+                            <p class="text-center mb-2">物品</p>
+                            <div id="objectGroupsContainer" class="grid grid-cols-2 gap-4"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 简单加减游戏内容 -->
+                <div id="simpleAddSubGame" class="game-content hidden">
+                    <div id="mathProblem" class="text-center mb-6">
+                        <div class="flex justify-center items-center text-3xl">
+                            <div id="firstNumber" class="mr-2">3</div>
+                            <div id="operation" class="mr-2">+</div>
+                            <div id="secondNumber" class="mr-2">2</div>
+                            <div class="mr-2">=</div>
+                            <div class="w-12 h-12 border-2 border-dashed border-gray-400 rounded flex justify-center items-center">?</div>
+                        </div>
+                        <div id="mathVisualization" class="flex justify-center my-6"></div>
+                    </div>
+                    <div class="flex flex-wrap justify-center" id="mathOptions"></div>
+                </div>
+                
+                <div id="feedbackArea" class="mt-6 text-center hidden">
+                    <div id="correctFeedback" class="text-green-500 text-2xl hidden">
+                        <i class="fas fa-check-circle mr-2"></i> 太棒了！回答正确！
+                    </div>
+                    <div id="incorrectFeedback" class="text-red-500 text-2xl hidden">
+                        <i class="fas fa-times-circle mr-2"></i> 再试一次！
+                    </div>
+                    <button id="nextBtn" class="btn-game mt-4 hidden" onclick="nextQuestion()">
+                        下一题 <i class="fas fa-arrow-right ml-2"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 游戏结束界面 -->
+        <div id="gameOver" class="hidden text-center p-6 bg-white rounded-xl shadow-lg">
+            <h2 class="text-3xl font-bold mb-4 text-purple-600">游戏结束!</h2>
+            <p class="text-xl mb-2">你的分数是: <span id="finalScore" class="font-bold">0</span></p>
+            <div class="star-container" id="starRating"></div>
+            <p id="completionMessage" class="text-lg mb-6"></p>
+            
+            <div class="flex justify-center space-x-4">
+                <button class="btn-game bg-green-500" onclick="backToMenu()">
+                    <i class="fas fa-home mr-2"></i> 回到主菜单
+                </button>
+                <button class="btn-game bg-blue-500" onclick="replayGame()">
+                    <i class="fas fa-redo mr-2"></i> 再玩一次
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 音效 -->
+    <audio id="correctSound" src="https://cdn.jsdelivr.net/gh/freeCodeCamp/cdn@master/build/testable-projects-fcc/audio/BeepSound.wav"></audio>
+    <audio id="incorrectSound" src="https://cdn.jsdelivr.net/gh/freeCodeCamp/cdn@master/build/testable-projects-fcc/audio/shrinkSound.mp3"></audio>
+    <audio id="gameCompleteSound" src="https://cdn.jsdelivr.net/gh/freeCodeCamp/cdn@master/build/testable-projects-fcc/audio/drum-roll.mp3"></audio>
+    <audio id="clickSound" src="https://cdn.jsdelivr.net/gh/freeCodeCamp/cdn@master/build/testable-projects-fcc/audio/click1.mp3"></audio>
+
+    <script>
+        // 游戏状态和变量
+        const gameState = {
+            currentGame: '',
+            score: 0,
+            currentLevel: 0,
+            maxLevel: 10,
+            currentAnswer: null,
+            progress: 0,
+            attempts: 0,
+            gameHistory: {}
+        };
+
+        // 物品图像库
+        const itemImages = [
+            "https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/svg/1f34e.svg", // 苹果
+            "https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/svg/1f31f.svg", // 星星
+            "https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/svg/1f36d.svg", // 棒棒糖
+            "https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/svg/1f431.svg", // 猫
+            "https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/svg/1f98a.svg", // 狼
+            "https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/svg/1f98b.svg", // 狐狸
+            "https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/svg/1f984.svg", // 独角兽
+            "https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/svg/1f338.svg", // 樱花
+            "https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/svg/1f33c.svg", // 花朵
+            "https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/svg/2b50.svg"   // 星形
+        ];
+
+        // 初始化页面
+        document.addEventListener('DOMContentLoaded', () => {
+            loadGameProgress();
+            addSoundEffects();
+        });
+
+        // 添加声音效果交互
+        function addSoundEffects() {
+            const buttons = document.querySelectorAll('.btn-game, .mode-card');
+            buttons.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    document.getElementById('clickSound').play();
+                });
+            });
+        }
+
+        // 开始游戏
+        function startGame(gameType) {
+            gameState.currentGame = gameType;
+            gameState.score = 0;
+            gameState.currentLevel = 0;
+            gameState.progress = 0;
+            gameState.attempts = 0;
+            
+            // 隐藏主菜单，显示游戏区域
+            document.getElementById('mainMenu').classList.add('hidden');
+            document.getElementById('gameArea').classList.remove('hidden');
+            document.getElementById('scoreDisplay').textContent = `分数: ${gameState.score}`;
+            
+            // 根据游戏类型设置标题和说明
+            const gameTitles = {
+                'countingPractice': '数数练习',
+                'beforeAfter': '前后关系',
+                'sequentialCounting': '计数游戏',
+                'numberMatching': '数量匹配',
+                'simpleAddSub': '简单加减'
+            };
+            
+            const gameInstructions = {
+                'countingPractice': '数一数有多少个物品，然后选择正确的数字',
+                'beforeAfter': '找出给定数字的前一个或后一个数字',
+                'sequentialCounting': '按照1到10的顺序点击数字',
+                'numberMatching': '将数字与对应数量的物品匹配起来',
+                'simpleAddSub': '解决简单的加减法题目'
+            };
+            
+            document.getElementById('gameTitle').textContent = gameTitles[gameType];
+            document.getElementById('gameInstruction').textContent = gameInstructions[gameType];
+            
+            // 隐藏所有游戏内容，只显示当前游戏
+            document.querySelectorAll('.game-content').forEach(el => el.classList.add('hidden'));
+            document.getElementById(`${gameType}Game`).classList.remove('hidden');
+            
+            // 根据游戏类型生成题目
+            generateQuestion();
+        }
+
+        // 生成问题
+        function generateQuestion() {
+            gameState.progress = (gameState.currentLevel / gameState.maxLevel) * 100;
+            document.getElementById('progressFill').style.width = `${gameState.progress}%`;
+            
+            document.getElementById('feedbackArea').classList.add('hidden');
+            document.getElementById('correctFeedback').classList.add('hidden');
+            document.getElementById('incorrectFeedback').classList.add('hidden');
+            document.getElementById('nextBtn').classList.add('hidden');
+            
+            switch(gameState.currentGame) {
+                case 'countingPractice':
+                    generateCountingQuestion();
+                    break;
+                case 'beforeAfter':
+                    generateBeforeAfterQuestion();
+                    break;
+                case 'sequentialCounting':
+                    generateSequentialQuestion();
+                    break;
+                case 'numberMatching':
+                    generateMatchingQuestion();
+                    break;
+                case 'simpleAddSub':
+                    generateAddSubQuestion();
+                    break;
+            }
+        }
+
+        // 生成数数练习问题
+        function generateCountingQuestion() {
+            const objectsContainer = document.getElementById('objectsContainer');
+            objectsContainer.innerHTML = '';
+            
+            // 根据当前级别确定数字范围
+            const maxNumber = Math.min(10, 3 + Math.floor(gameState.currentLevel / 2));
+            const count = Math.floor(Math.random() * maxNumber) + 1;
+            gameState.currentAnswer = count;
+            
+            // 随机选择一种物品
+            const randomItemIndex = Math.floor(Math.random() * itemImages.length);
+            const itemImageSrc = itemImages[randomItemIndex];
+            
+            // 创建物品
+            for (let i = 0; i < count; i++) {
+                const item = document.createElement('img');
+                item.src = itemImageSrc;
+                item.alt = '物品';
+                item.className = 'animal game-item';
+                
+                // 随机位置
+                const randomX = Math.floor(Math.random() * 70) + 15;
+                const randomY = Math.floor(Math.random() * 70) + 15;
+                item.style.margin = `${randomY}px ${randomX}px`;
+                
+                objectsContainer.appendChild(item);
+            }
+            
+            // 生成选项
+            const numberOptions = document.getElementById('numberOptions');
+            numberOptions.innerHTML = '';
+            
+            // 生成答案和干扰选项
+            let options = [count];
+            while (options.length < 3) {
+                const option = Math.floor(Math.random() * maxNumber) + 1;
+                if (!options.includes(option)) {
+                    options.push(option);
+                }
+            }
+            
+            // 打乱选项顺序
+            options = shuffleArray(options);
+            
+            // 创建选项按钮
+            options.forEach(option => {
+                const button = document.createElement('button');
+                button.textContent = option;
+                button.className = 'number-btn text-2xl font-bold';
+                button.style.backgroundColor = getRandomColor();
+                button.onclick = () => checkAnswer(option);
+                numberOptions.appendChild(button);
+            });
+        }
+
+        // 生成前后关系问题
+        function generateBeforeAfterQuestion() {
+            const targetNumber = document.getElementById('targetNumber');
+            const questionType = document.getElementById('questionType');
+            const numberOptions = document.getElementById('numberOptionsBA');
+            
+            // 清空之前的内容
+            numberOptions.innerHTML = '';
+            
+            // 根据级别确定数字范围
+            const maxNumber = Math.min(19, 5 + gameState.currentLevel);
+            const minNumber = 2;
+            
+            // 随机选择一个数字
+            const number = Math.floor(Math.random() * (maxNumber - minNumber + 1)) + minNumber;
+            
+            // 随机决定是找前一个还是后一个
+            const isBefore = Math.random() < 0.5;
+            
+            targetNumber.textContent = number;
+            
+            if (isBefore) {
+                questionType.textContent = '它的前一个数字是什么？';
+                gameState.currentAnswer = number - 1;
+            } else {
+                questionType.textContent = '它的后一个数字是什么？';
+                gameState.currentAnswer = number + 1;
+            }
+            
+            // 生成选项
+            let options = [gameState.currentAnswer];
+            while (options.length < 3) {
+                const offset = Math.floor(Math.random() * 5) - 2; // -2 到 2 的偏移
+                const option = number + offset;
+                if (!options.includes(option) && option > 0 && option !== number) {
+                    options.push(option);
+                }
+            }
+            
+            options = shuffleArray(options);
+            
+            // 创建选项按钮
+            options.forEach(option => {
+                const button = document.createElement('button');
+                button.textContent = option;
+                button.className = 'number-btn text-2xl font-bold';
+                button.style.backgroundColor = getRandomColor();
+                button.onclick = () => checkAnswer(option);
+                numberOptions.appendChild(button);
+            });
+        }
+
+        // 生成顺序计数问题
+        function generateSequentialQuestion() {
+            const sequentialNumbers = document.getElementById('sequentialNumbers');
+            sequentialNumbers.innerHTML = '';
+            
+            // 根据级别确定数字范围
+            const maxNumber = Math.min(10, 3 + Math.floor(gameState.currentLevel / 2));
+            
+            // 创建数字1到maxNumber
+            let numbers = Array.from({length: maxNumber}, (_, i) => i + 1);
+            
+            // 打乱顺序
+            numbers = shuffleArray(numbers);
+            
+            // 跟踪当前应该点击的数字
+            gameState.currentSequence = 1;
+            gameState.maxSequence = maxNumber;
+            
+            // 创建数字按钮
+            numbers.forEach(num => {
+                const button = document.createElement('button');
+                button.textContent = num;
+                button.className = 'number-btn text-2xl font-bold';
+                button.style.backgroundColor = getRandomColor();
+                button.dataset.number = num;
+                button.onclick = () => checkSequentialClick(num);
+                sequentialNumbers.appendChild(button);
+            });
+        }
+
+        // 生成数量匹配问题
+        function generateMatchingQuestion() {
+            const numberContainer = document.getElementById('numberContainer');
+            const objectGroupsContainer = document.getElementById('objectGroupsContainer');
+            
+            // 清空之前的内容
+            numberContainer.innerHTML = '';
+            objectGroupsContainer.innerHTML = '';
+            
+            // 根据级别确定数字范围
+            const maxNumber = Math.min(10, 3 + Math.floor(gameState.currentLevel / 2));
+            
+            // 创建数字1到maxNumber
+            let numbers = Array.from({length: maxNumber}, (_, i) => i + 1);
+            numbers = shuffleArray(numbers);
+            
+            // 创建数字按钮
+            let selectedNumber = null;
+            numbers.forEach(num => {
+                const numDiv = document.createElement('div');
+                numDiv.textContent = num;
+                numDiv.className = 'number-btn text-2xl font-bold';
+                numDiv.style.backgroundColor = getRandomColor();
+                numDiv.dataset.number = num;
+                numDiv.onclick = function() {
+                    // 取消之前的选择
+                    document.querySelectorAll('.number-btn').forEach(btn => {
+                        btn.classList.remove('ring-4', 'ring-blue-500');
+                    });
+                    
+                    // 高亮当前选择
+                    this.classList.add('ring-4', 'ring-blue-500');
+                    selectedNumber = parseInt(this.dataset.number);
+                    
+                    // 检查是否和物品组匹配
+                    checkMatching(selectedNumber);
+                };
+                numberContainer.appendChild(numDiv);
+            });
+            
+            // 初始化匹配状态
+            gameState.matchedNumbers = new Set();
+            gameState.totalToMatch = numbers.length;
+            
+            // 创建物品组
+            const shuffledNumbers = shuffleArray([...numbers]);
+            shuffledNumbers.forEach(num => {
+                const groupDiv = document.createElement('div');
+                groupDiv.className = 'p-2 rounded-lg bg-gray-100 flex flex-wrap justify-center items-center min-h-20';
+                groupDiv.dataset.count = num;
+                
+                // 随机选择一种物品
+                const randomItemIndex = Math.floor(Math.random() * itemImages.length);
+                const itemImageSrc = itemImages[randomItemIndex];
+                
+                // 添加对应数量的物品
+                for (let i = 0; i < num; i++) {
+                    const item = document.createElement('img');
+                    item.src = itemImageSrc;
+                    item.alt = '物品';
+                    item.className = 'animal';
+                    groupDiv.appendChild(item);
+                }
+                
+                objectGroupsContainer.appendChild(groupDiv);
+            });
+        }
+
+        // 生成简单加减法问题
+        function generateAddSubQuestion() {
+            const firstNumber = document.getElementById('firstNumber');
+            const operation = document.getElementById('operation');
+            const secondNumber = document.getElementById('secondNumber');
+            const mathVisualization = document.getElementById('mathVisualization');
+            const mathOptions = document.getElementById('mathOptions');
+            
+            // 清空之前的内容
+            mathVisualization.innerHTML = '';
+            mathOptions.innerHTML = '';
+            
+            // 根据级别确定数字范围
+            const maxNumber = Math.min(5, 2 + Math.floor(gameState.currentLevel / 2));
+            
+            // 随机决定是加法还是减法
+            const isAddition = Math.random() < 0.7; // 70%概率是加法
+            
+            let num1, num2, answer;
+            
+            if (isAddition) {
+                // 加法
+                num1 = Math.floor(Math.random() * maxNumber) + 1;
+                num2 = Math.floor(Math.random() * maxNumber) + 1;
+                answer = num1 + num2;
+                operation.textContent = '+';
+            } else {
+                // 减法，确保结果为正
+                num1 = Math.floor(Math.random() * maxNumber) + 3;
+                num2 = Math.floor(Math.random() * (num1 - 1)) + 1;
+                answer = num1 - num2;
+                operation.textContent = '-';
+            }
+            
+            firstNumber.textContent = num1;
+            secondNumber.textContent = num2;
+            gameState.currentAnswer = answer;
+            
+            // 创建可视化表示
+            const randomItemIndex = Math.floor(Math.random() * itemImages.length);
+            const itemImageSrc = itemImages[randomItemIndex];
+            
+            if (isAddition) {
+                // 加法可视化: 第一组 + 第二组
+                const firstGroup = document.createElement('div');
+                firstGroup.className = 'flex items-center mx-2';
+                
+                for (let i = 0; i < num1; i++) {
+                    const item = document.createElement('img');
+                    item.src = itemImageSrc;
+                    item.alt = '物品';
+                    item.className = 'animal';
+                    firstGroup.appendChild(item);
+                }
+                
+                const plusSign = document.createElement('div');
+                plusSign.textContent = '+';
+                plusSign.className = 'text-3xl mx-4';
+                
+                const secondGroup = document.createElement('div');
+                secondGroup.className = 'flex items-center mx-2';
+                
+                for (let i = 0; i < num2; i++) {
+                    const item = document.createElement('img');
+                    item.src = itemImageSrc;
+                    item.alt = '物品';
+                    item.className = 'animal';
+                    secondGroup.appendChild(item);
+                }
+                
+                mathVisualization.appendChild(firstGroup);
+                mathVisualization.appendChild(plusSign);
+                mathVisualization.appendChild(secondGroup);
+            } else {
+                // 减法可视化: 总数和划掉的部分
+                const totalGroup = document.createElement('div');
+                totalGroup.className = 'flex items-center relative';
+                
+                for (let i = 0; i < num1; i++) {
+                    const item = document.createElement('img');
+                    item.src = itemImageSrc;
+                    item.alt = '物品';
+                    item.className = 'animal';
+                    
+                    // 给要减去的部分添加特殊样式
+                    if (i >= num1 - num2) {
+                        item.classList.add('opacity-50');
+                        const crossLine = document.createElement('div');
+                        crossLine.className = 'absolute w-full h-0.5 bg-red-500 rotate-45';
+                        crossLine.style.top = '50%';
+                        
+                        const itemContainer = document.createElement('div');
+                        itemContainer.className = 'relative';
+                        itemContainer.appendChild(item);
+                        itemContainer.appendChild(crossLine);
+                        totalGroup.appendChild(itemContainer);
+                    } else {
+                        totalGroup.appendChild(item);
+                    }
+                }
+                
+                mathVisualization.appendChild(totalGroup);
+            }
+            
+            // 生成选项
+            let options = [answer];
+            while (options.length < 3) {
+                const offset = Math.floor(Math.random() * 3) - 1; // -1 到 1 的偏移
+                const option = answer + offset;
+                if (!options.includes(option) && option >= 0) {
+                    options.push(option);
+                }
+            }
+            
+            options = shuffleArray(options);
+            
+            // 创建选项按钮
+            options.forEach(option => {
+                const button = document.createElement('button');
+                button.textContent = option;
+                button.className = 'number-btn text-2xl font-bold';
+                button.style.backgroundColor = getRandomColor();
+                button.onclick = () => checkAnswer(option);
+                mathOptions.appendChild(button);
+            });
+        }
+
+        // 检查答案
+        function checkAnswer(answer) {
+            const isCorrect = answer === gameState.currentAnswer;
+            
+            document.getElementById('feedbackArea').classList.remove('hidden');
+            
+            if (isCorrect) {
+                document.getElementById('correctSound').play();
+                document.getElementById('correctFeedback').classList.remove('hidden');
+                document.getElementById('nextBtn').classList.remove('hidden');
+                gameState.score += 10;
+                document.getElementById('scoreDisplay').textContent = `分数: ${gameState.score}`;
+                gameState.currentLevel++;
+                
+                // 添加动画效果
+                const buttons = document.querySelectorAll('.number-btn');
+                buttons.forEach(btn => {
+                    if (parseInt(btn.textContent) === answer) {
+                        btn.classList.add('tada');
+                    }
+                });
+            } else {
+                document.getElementById('incorrectSound').play();
+                document.getElementById('incorrectFeedback').classList.remove('hidden');
+                gameState.attempts++;
+                
+                // 添加摇晃效果
+                const buttons = document.querySelectorAll('.number-btn');
+                buttons.forEach(btn => {
+                    if (parseInt(btn.textContent) === answer) {
+                        btn.classList.add('animate-shake');
+                        setTimeout(() => {
+                            btn.classList.remove('animate-shake');
+                        }, 500);
+                    }
+                });
+                
+                // 第二次错误后自动进入下一题
+                if (gameState.attempts >= 2) {
+                    document.getElementById('nextBtn').classList.remove('hidden');
+                    gameState.currentLevel++;
+                }
+            }
+            
+            // 检查是否游戏结束
+            if (gameState.currentLevel >= gameState.maxLevel) {
+                setTimeout(() => {
+                    endGame();
+                }, 1500);
+            }
+        }
+
+        // 检查顺序点击
+        function checkSequentialClick(num) {
+            if (parseInt(num) === gameState.currentSequence) {
+                document.getElementById('correctSound').play();
+                
+                // 标记已点击
+                const button = document.querySelector(`.number-btn[data-number="${num}"]`);
+                button.style.backgroundColor = '#4CAF50';
+                button.classList.add('bounce');
+                button.disabled = true;
+                
+                gameState.currentSequence++;
+                
+                if (gameState.currentSequence > gameState.maxSequence) {
+                    document.getElementById('feedbackArea').classList.remove('hidden');
+                    document.getElementById('correctFeedback').classList.remove('hidden');
+                    document.getElementById('nextBtn').classList.remove('hidden');
+                    gameState.score += 10;
+                    document.getElementById('scoreDisplay').textContent = `分数: ${gameState.score}`;
+                    gameState.currentLevel++;
+                    
+                    // 检查是否游戏结束
+                    if (gameState.currentLevel >= gameState.maxLevel) {
+                        setTimeout(() => {
+                            endGame();
+                        }, 1500);
+                    }
+                }
+            } else {
+                document.getElementById('incorrectSound').play();
+                
+                // 添加摇晃效果
+                const button = document.querySelector(`.number-btn[data-number="${num}"]`);
+                button.classList.add('animate-shake');
+                setTimeout(() => {
+                    button.classList.remove('animate-shake');
+                }, 500);
+            }
+        }
+
+        // 检查数量匹配
+        function checkMatching(selectedNumber) {
+            const groups = document.querySelectorAll('#objectGroupsContainer > div');
+            
+            groups.forEach(group => {
+                const count = parseInt(group.dataset.count);
+                
+                if (count === selectedNumber && !gameState.matchedNumbers.has(selectedNumber)) {
+                    document.getElementById('correctSound').play();
+                    
+                    // 标记匹配成功
+                    group.classList.add('bg-green-100');
+                    group.classList.add('ring-4');
+                    group.classList.add('ring-green-500');
+                    
+                    // 添加到已匹配集合
+                    gameState.matchedNumbers.add(selectedNumber);
+                    
+                    // 检查是否所有都匹配了
+                    if (gameState.matchedNumbers.size === gameState.totalToMatch) {
+                        document.getElementById('feedbackArea').classList.remove('hidden');
+                        document.getElementById('correctFeedback').classList.remove('hidden');
+                        document.getElementById('nextBtn').classList.remove('hidden');
+                        gameState.score += 10;
+                        document.getElementById('scoreDisplay').textContent = `分数: ${gameState.score}`;
+                        gameState.currentLevel++;
+                        
+                        // 检查是否游戏结束
+                        if (gameState.currentLevel >= gameState.maxLevel) {
+                            setTimeout(() => {
+                                endGame();
+                            }, 1500);
+                        }
+                    }
+                } else if (count !== selectedNumber) {
+                    // 不匹配的不做任何变化
+                }
+            });
+        }
+
+        // 下一题
+        function nextQuestion() {
+            gameState.attempts = 0;
+            
+            document.querySelectorAll('.number-btn').forEach(btn => {
+                btn.classList.remove('tada');
+                btn.classList.remove('animate-shake');
+            });
+            
+            if (gameState.currentLevel < gameState.maxLevel) {
+                generateQuestion();
+            } else {
+                endGame();
+            }
+        }
+
+        // 游戏结束
+        function endGame() {
+            document.getElementById('gameCompleteSound').play();
+            
+            document.getElementById('gameArea').classList.add('hidden');
+            document.getElementById('gameOver').classList.remove('hidden');
+            
+            document.getElementById('finalScore').textContent = gameState.score;
+            
+            // 计算星级
+            const maxPossibleScore = gameState.maxLevel * 10;
+            const percentage = (gameState.score / maxPossibleScore) * 100;
+            let stars = 0;
+            
+            if (percentage >= 90) stars = 3;
+            else if (percentage >= 70) stars = 2;
+            else if (percentage >= 50) stars = 1;
+            
+            // 显示星星
+            const starRating = document.getElementById('starRating');
+            starRating.innerHTML = '';
+            
+            for (let i = 0; i < 3; i++) {
+                const star = document.createElement('i');
+                star.className = i < stars ? 'fas fa-star star filled' : 'fas fa-star star';
+                starRating.appendChild(star);
+            }
+            
+            // 完成信息
+            const messages = [
+                '继续加油，你能做得更好！',
+                '做得不错，再练习一下！',
+                '很棒！你真聪明！',
+                '太棒了！你是数学小天才！'
+            ];
+            
+            document.getElementById('completionMessage').textContent = messages[stars];
+            
+            // 保存游戏进度
+            saveGameProgress();
+        }
+
+        // 返回主菜单
+        function backToMenu() {
+            document.getElementById('gameArea').classList.add('hidden');
+            document.getElementById('gameOver').classList.add('hidden');
+            document.getElementById('mainMenu').classList.remove('hidden');
+        }
+
+        // 重玩当前游戏
+        function replayGame() {
+            document.getElementById('gameOver').classList.add('hidden');
+            startGame(gameState.currentGame);
+        }
+
+        // 保存游戏进度
+        function saveGameProgress() {
+            if (gameState.currentGame) {
+                // 为当前游戏类型保存最高分
+                const prevHighScore = gameState.gameHistory[gameState.currentGame] || 0;
+                if (gameState.score > prevHighScore) {
+                    gameState.gameHistory[gameState.currentGame] = gameState.score;
+                    
+                    // 保存到本地存储
+                    localStorage.setItem('numberGameProgress', JSON.stringify(gameState.gameHistory));
+                }
+            }
+        }
+
+        // 加载游戏进度
+        function loadGameProgress() {
+            const savedProgress = localStorage.getItem('numberGameProgress');
+            if (savedProgress) {
+                gameState.gameHistory = JSON.parse(savedProgress);
+            }
+        }
+
+        // 辅助函数: 打乱数组顺序
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        // 辅助函数: 获取随机颜色
+        function getRandomColor() {
+            const colors = [
+                '#FF6B6B', '#4ECDC4', '#FFD166', '#73D2DE', '#ACD8AA',
+                '#EF767A', '#49BEAA', '#FFC233', '#6ABEA7', '#F49D37'
+            ];
+            return colors[Math.floor(Math.random() * colors.length)];
+        }
+    </script>
+</body>
+</html>
