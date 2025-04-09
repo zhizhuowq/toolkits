@@ -1,0 +1,12 @@
+@font-face {
+    font-family: 'pangzhonghuaJT';
+    src: url('../../assets/fonts/庞中华简体.ttf') format('truetype');
+}
+@font-face {
+    font-family: 'pangzhonghuaXS';
+    src: url('../../assets/fonts/庞中华行书.ttf') format('truetype');
+}
+body {
+    font-family: Arial, sans-serif;
+    margin: 20px;
+}
