@@ -113,14 +113,39 @@
         </div>
         <div>
             <label>字体：</label>
-            <select id="fontFamily">
-                <option value="pangzhonghuaJT">庞中华简体</option>
-                <option value="pangzhonghuaXS">庞中华行书</option>
-                <option value="Arial">Arial</option>
-                <option value="SimSun">宋体</option>
-                <option value="SimHei">黑体</option>
+            <select id="fontFamily">     
+                <!-- <option value="Arial">Arial</option> -->
+                <!-- <option value="SimSun">宋体</option> -->
+                <!-- <option value="SimHei">黑体</option> -->
                 <option value="KaiTi">楷体</option>
                 <option value="FangSong">仿宋</option>
+                <option value="'楷体_GB2312', '楷体', 'Kaiti SC', 'ST Kaiti', STKaiti, KaiTi, KaiTi_GB2312, 'TW-Kai'">楷体</option>
+                <option value="庞中华楷书">庞中华楷书</option>
+                <option value="庞中华行书">庞中华行书</option>
+                <option value="pangzhonghuaJT">庞中华简体LOCAL</option>
+                <option value="pangzhonghuaXS">庞中华行书LOCAL</option>
+                <option value="CnTianYingZhangKaiShu">田英章楷书</option>
+                <option value="CnTianYingZhangXingShu">田英章行书</option>
+                <option value="CnRmjzqpKaiShu">瑞美加张清平楷书</option>
+                <option value="CnRmjzqpXingShu">瑞美加张清平行书</option>
+                <option value="荆霄鹏楷书">荆霄鹏楷书</option>
+                <option value="CnSiMaYanXingShu">司马彦行书</option>
+                <option value="吴玉生行书">吴玉生行书</option>
+                <option value="顾仲安行书">顾仲安行书</option>
+                <option value="CnPinRuShouXieTi">品如手写体</option>
+                <option value="CnYuBingXingKai">喻兵行楷</option>
+                <option value="CnHanYiShouJinTi">汉仪瘦金体</option>
+                <option value="新叶念体">新叶念体</option>
+                <option value="CnYangRenDongZhuShiTi">杨任东竹石体</option>
+                <option value="黄凯桦律师手写体">黄凯桦律师手写体</option>
+                <option value="莫大毛筆字體">莫大毛筆字體</option>
+                <option value="正風毛筆字體">正風毛筆字體</option>
+                <option value="钟齐流江毛草">钟齐流江毛草</option>
+                <option value="鸿鹄手写体">鸿鹄手写体</option>
+                <option value="井柏然手写体">井柏然手写体</option>
+                <option value="默陌纸鸢行草">默陌纸鸢行草</option>
+                <option value="情书体">情书体</option>
+                <option value="侠客行体">侠客行体</option>
             </select>
         </div>
         <div>
@@ -149,7 +174,7 @@
     <div id="preview" class="preview"></div>
 
     <script>
-        function generate() {
+       async function generate() {
             // 获取用户输入的参数
             const input = document.getElementById("inputChars").value;
             const gridType = document.getElementById("gridType").value;
@@ -191,9 +216,9 @@
             // 将输入的汉字逐行处理
             const lines = input.split("");
             let currentPage = null;
-            let currentRowCount = 0;
-
-            lines.forEach((line) => {
+            let currentRowCount = 0;            
+            handle=()=>{
+                lines.forEach((line) => {
                 const chars = line.split("");
                 for (let i = 0; i < chars.length; i += charsPerRow) {
                     // 如果当前页满了，创建新页
@@ -229,9 +254,14 @@
                             charDiv.textContent = char;
                             charDiv.style.fontFamily = fontFamily;
                             charDiv.style.fontSize = `${fontSize}px`;
-                            if(fontFamily=='pangzhonghuaXS'){
-                                charDiv.style.fontSize = `${fontSize*0.80}px`;
-                                charDiv.style.marginLeft = `${-fontSize*0.2}px`;
+                            switch (fontFamily) {
+                                case '庞中华行书':   
+                                case 'pangzhonghuaXS':   
+                                    charDiv.style.fontSize = `${fontSize*0.80}px`;
+                                    charDiv.style.marginLeft = `${-fontSize*0.2}px`;
+                                    break;
+                                default:
+                                    break;
                             }
                             charDiv.style.color =
                                 j < darkCount
@@ -247,6 +277,36 @@
                     currentRowCount++;
                 }
             });
+            }
+            switch (fontFamily) {
+                case 'KaiTi':
+                case 'FangSong':
+                case 'pangzhonghuaJT':
+                case 'pangzhonghuaXS':
+                case "'楷体_GB2312', '楷体', 'Kaiti SC', 'ST Kaiti', STKaiti, KaiTi, KaiTi_GB2312, 'TW-Kai'":
+                    handle();
+                    break;
+                default:
+                    var xhr=new XMLHttpRequest( );
+                    xhr.open('POST', 'https://paper-api-n.z2h.cn/api/subfont', true);
+                    xhr.setRequestHeader('Content-Type', 'application/json');
+                    xhr.responseType = 'json';
+                    xhr.send(JSON.stringify({
+                            fontFamily,
+                            text: input
+                        }));
+                    xhr.onload =async function() {
+                        if (xhr.status === 200) {
+                            var data = xhr.response;
+                            const fontFace = new FontFace(fontFamily, data.fontSrc);
+                            let font= await fontFace.load();
+                            document.fonts.add(font);
+                            handle();
+                        }
+                }
+                    
+            }
+            
         }
 
         // 获取纸张尺寸（毫米转像素）
