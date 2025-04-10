@@ -40,6 +40,28 @@
                 stroke-dashoffset: 0;
             }
         }
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+            #hanziContainer,
+            #hanziContainer * {
+                visibility: visible;
+            }
+
+            #hanziContainer {
+                position: absolute;
+                left: 0;
+                top: 0;
+            }
+
+            .hanzi-box {
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+                image-rendering: crisp-edges; /* 强制高质量渲染 */
+                image-rendering: pixelated;  /* 防止模糊 */
+            }
+        }
     </style>
 </head>
 <body>
