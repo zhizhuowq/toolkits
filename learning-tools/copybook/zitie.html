@@ -132,19 +132,19 @@
                 <option value="庞中华行书">庞中华行书</option>
                 <option value="pangzhonghuaJT">庞中华简体LOCAL</option>
                 <option value="pangzhonghuaXS">庞中华行书LOCAL</option>
-                <option value="CnTianYingZhangKaiShu">田英章楷书</option>
-                <option value="CnTianYingZhangXingShu">田英章行书</option>
-                <option value="CnRmjzqpKaiShu">瑞美加张清平楷书</option>
-                <option value="CnRmjzqpXingShu">瑞美加张清平行书</option>
+                <option value="田英章楷书">田英章楷书</option>
+                <option value="田英章行书">田英章行书</option>
+                <option value="瑞美加张清平楷书">瑞美加张清平楷书</option>
+                <option value="瑞美加张清平行书">瑞美加张清平行书</option>
                 <option value="荆霄鹏楷书">荆霄鹏楷书</option>
-                <option value="CnSiMaYanXingShu">司马彦行书</option>
                 <option value="吴玉生行书">吴玉生行书</option>
                 <option value="顾仲安行书">顾仲安行书</option>
-                <option value="CnPinRuShouXieTi">品如手写体</option>
-                <option value="CnYuBingXingKai">喻兵行楷</option>
-                <option value="CnHanYiShouJinTi">汉仪瘦金体</option>
+                <option value="司马彦行书">司马彦行书</option>
+                <option value="品如手写体">品如手写体</option>
+                <option value="喻兵行楷">喻兵行楷</option>
+                <option value="汉仪瘦金体">汉仪瘦金体</option>
+                <option value="杨任东竹石体">杨任东竹石体</option>
                 <option value="新叶念体">新叶念体</option>
-                <option value="CnYangRenDongZhuShiTi">杨任东竹石体</option>
                 <option value="黄凯桦律师手写体">黄凯桦律师手写体</option>
                 <option value="莫大毛筆字體">莫大毛筆字體</option>
                 <option value="正風毛筆字體">正風毛筆字體</option>
@@ -154,6 +154,16 @@
                 <option value="默陌纸鸢行草">默陌纸鸢行草</option>
                 <option value="情书体">情书体</option>
                 <option value="侠客行体">侠客行体</option>
+                <option value="CnTianYingZhangKaiShu">田英章楷书_BK</option>
+                <option value="CnTianYingZhangXingShu">田英章行书_BK</option>
+                <option value="CnRmjzqpKaiShu">瑞美加张清平楷书_BK</option>
+                <option value="CnRmjzqpXingShu">瑞美加张清平行书_BK</option>
+                <option value="CnSiMaYanXingShu">司马彦行书_BK</option>
+                <option value="CnPinRuShouXieTi">品如手写体_BK</option>
+                <option value="CnYuBingXingKai">喻兵行楷_BK</option>
+                <option value="CnHanYiShouJinTi">汉仪瘦金体_BK</option>
+                <option value="CnYangRenDongZhuShiTi">杨任东竹石体_BK</option>
+                <option value="顾仲安行书">顾仲安行书_BK</option>
             </select>
         </div>
         <div>
@@ -316,6 +326,9 @@
                     var xhr=new XMLHttpRequest( );
                     xhr.open('POST', 'https://paper-api-n.z2h.cn/api/subfont', true);
                     xhr.setRequestHeader('Content-Type', 'application/json');
+                    xhr.setRequestHeader('Referer','https://zitie.z2h.cn/hanzi');
+                    xhr.setRequestHeader('Host','https://zitie.z2h.cn');
+                    xhr.setRequestHeader('Origin','https://zitie.z2h.cn');
                     xhr.responseType = 'json';
                     xhr.send(JSON.stringify({
                             fontFamily,
